@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/glass_search_bar.dart';
+import '../../domain/usecases/get_game_detail_usecase.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
 import '../widgets/game_card_widget.dart';
+import 'game_detail_page.dart';
 
 class GameListPage extends StatefulWidget {
   const GameListPage({super.key});
@@ -18,12 +20,25 @@ class GameListPage extends StatefulWidget {
 class _GameListPageState extends State<GameListPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
 
   @override
   void initState() {
     super.initState();
     context.read<GameBloc>().add(const FetchGamesEvent());
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    // Trigger infinite scroll pagination 250px before bottom
+    if (currentScroll >= (maxScroll - 250)) {
+      final state = context.read<GameBloc>().state;
+      if (state is GameLoadedState && !state.isLoadingMore && !state.hasReachedMax) {
+        context.read<GameBloc>().add(const LoadMoreGamesEvent());
+      }
+    }
   }
 
   @override
@@ -41,27 +56,10 @@ class _GameListPageState extends State<GameListPage> {
       backgroundColor: isDark ? const Color(0xFF090D16) : const Color(0xFFF1F5F9),
       body: Stack(
         children: [
-          // Cyberpunk subtle mesh background gradient bubbles
+          // Cyberpunk Background Ambient Mesh Glows
           Positioned(
             top: -60,
             right: -60,
-            child: Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF00E5FF).withOpacity(isDark ? 0.18 : 0.12),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: 280,
-            left: -80,
             child: Container(
               width: 260,
               height: 260,
@@ -69,7 +67,24 @@ class _GameListPageState extends State<GameListPage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF7C4DFF).withOpacity(isDark ? 0.16 : 0.10),
+                    const Color(0xFF00E5FF).withOpacity(isDark ? 0.20 : 0.12),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 260,
+            left: -80,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF7C4DFF).withOpacity(isDark ? 0.18 : 0.10),
                     Colors.transparent,
                   ],
                 ),
@@ -85,21 +100,21 @@ class _GameListPageState extends State<GameListPage> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                   child: GlassContainer(
-                    borderRadius: 20,
-                    blur: 16,
+                    borderRadius: 22,
+                    blur: 18,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     child: Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
+                          padding: const EdgeInsets.all(9),
+                          decoration: const BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF00E5FF), Color(0xFF7C4DFF)],
+                            gradient: LinearGradient(
+                              colors: [Color(0xFF003791), Color(0xFF00E5FF)],
                             ),
                           ),
                           child: const Icon(
-                            Icons.gamepad_rounded,
+                            Icons.sports_esports_rounded,
                             color: Colors.white,
                             size: 20,
                           ),
@@ -109,21 +124,41 @@ class _GameListPageState extends State<GameListPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'GAME LIBRARY',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.2,
-                                  color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                                ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'PLAYSTATION 5',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF10B981).withOpacity(0.18),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'LIVE API',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFF10B981),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               Text(
-                                'Discover & explore featured games',
+                                'Latest Released PS5 Vault • SSL Pinned',
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: isDark
-                                      ? Colors.white.withOpacity(0.5)
+                                      ? Colors.white.withOpacity(0.55)
                                       : AppColors.textSecondaryLight,
                                 ),
                               ),
@@ -135,7 +170,10 @@ class _GameListPageState extends State<GameListPage> {
                           tooltip: 'Refresh Data',
                           onPressed: () {
                             context.read<GameBloc>().add(
-                                  const FetchGamesEvent(forceRefresh: true),
+                                  FetchGamesEvent(
+                                    forceRefresh: true,
+                                    searchQuery: _searchController.text.trim(),
+                                  ),
                                 );
                           },
                         ),
@@ -144,35 +182,47 @@ class _GameListPageState extends State<GameListPage> {
                   ),
                 ),
 
-                // Search Bar Widget with Glassmorphism
+                // Glass Search Bar connected to BLoC
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   child: GlassSearchBar(
                     controller: _searchController,
-                    hintText: 'Cari judul game atau genre...',
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val.trim().toLowerCase();
-                      });
+                    hintText: 'Cari game PlayStation 5...',
+                    onChanged: (query) {
+                      context.read<GameBloc>().add(SearchGamesEvent(query));
                     },
                     onClear: () {
-                      setState(() {
-                        _searchQuery = '';
-                      });
+                      context.read<GameBloc>().add(const SearchGamesEvent(''));
                     },
                   ),
                 ),
 
                 const SizedBox(height: 6),
 
-                // Body List Content
+                // Body List Content with 120 FPS ListView.builder + Pagination
                 Expanded(
                   child: BlocBuilder<GameBloc, GameState>(
                     builder: (context, state) {
                       if (state is GameLoadingState) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
+                        return Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                state.isSearching
+                                    ? 'Mencari di database RAWG...'
+                                    : 'Memuat game PS5 terbaru...',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDark ? Colors.white70 : Colors.black54,
+                                ),
+                              ),
+                            ],
                           ),
                         );
                       }
@@ -210,7 +260,10 @@ class _GameListPageState extends State<GameListPage> {
                                     ),
                                     onPressed: () {
                                       context.read<GameBloc>().add(
-                                            const FetchGamesEvent(forceRefresh: true),
+                                            FetchGamesEvent(
+                                              forceRefresh: true,
+                                              searchQuery: state.activeQuery,
+                                            ),
                                           );
                                     },
                                     icon: const Icon(Icons.refresh_rounded),
@@ -224,15 +277,7 @@ class _GameListPageState extends State<GameListPage> {
                       }
 
                       if (state is GameLoadedState) {
-                        final filteredGames = _searchQuery.isEmpty
-                            ? state.games
-                            : state.games.where((game) {
-                                final titleMatch = game.title.toLowerCase().contains(_searchQuery);
-                                final genreMatch = game.genre.toLowerCase().contains(_searchQuery);
-                                return titleMatch || genreMatch;
-                              }).toList();
-
-                        if (filteredGames.isEmpty) {
+                        if (state.games.isEmpty) {
                           return Center(
                             child: Padding(
                               padding: const EdgeInsets.all(32.0),
@@ -249,9 +294,9 @@ class _GameListPageState extends State<GameListPage> {
                                     ),
                                     const SizedBox(height: 12),
                                     Text(
-                                      _searchQuery.isEmpty
-                                          ? 'Belum ada koleksi game.'
-                                          : 'Tidak ditemukan game dengan kata kunci "$_searchQuery"',
+                                      state.activeQuery.isEmpty
+                                          ? 'Belum ada koleksi game PS5.'
+                                          : 'Tidak ada game PS5 untuk "${state.activeQuery}"',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontSize: 14,
@@ -266,29 +311,76 @@ class _GameListPageState extends State<GameListPage> {
                           );
                         }
 
+                        final itemCount = state.games.length + (state.hasReachedMax ? 0 : 1);
+
                         return RefreshIndicator(
                           color: const Color(0xFF00E5FF),
                           onRefresh: () async {
                             context.read<GameBloc>().add(
-                                  const FetchGamesEvent(forceRefresh: true),
+                                  FetchGamesEvent(
+                                    forceRefresh: true,
+                                    searchQuery: state.activeQuery,
+                                  ),
                                 );
                           },
                           child: ListView.builder(
                             controller: _scrollController,
                             physics: const BouncingScrollPhysics(),
                             padding: const EdgeInsets.only(top: 4, bottom: 20),
-                            itemCount: filteredGames.length,
+                            itemCount: itemCount,
                             itemBuilder: (context, index) {
-                              final game = filteredGames[index];
+                              // If reaching bottom loader slot
+                              if (index >= state.games.length) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 20),
+                                    child: GlassContainer(
+                                      borderRadius: 14,
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                      child: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2.2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Text(
+                                            'Memuat game berikutnya...',
+                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              final game = state.games[index];
                               return GameCardWidget(
                                 key: ValueKey(game.id),
                                 game: game,
                                 onTap: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text('Selected: ${game.title}'),
-                                      behavior: SnackBarBehavior.floating,
-                                      duration: const Duration(seconds: 1),
+                                  Navigator.of(context).push(
+                                    PageRouteBuilder<void>(
+                                      transitionDuration: const Duration(milliseconds: 400),
+                                      pageBuilder: (context, animation, secondaryAnimation) =>
+                                          GameDetailPage(
+                                        initialGame: game,
+                                        getGameDetailUseCase:
+                                            context.read<GetGameDetailUseCase>(),
+                                      ),
+                                      transitionsBuilder:
+                                          (context, animation, secondaryAnimation, child) {
+                                        return FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        );
+                                      },
                                     ),
                                   );
                                 },
