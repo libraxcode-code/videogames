@@ -1,8 +1,14 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// Interactive Fluid Liquid / Water Ripple Background with touch & scroll motion.
-/// Calm, elegant, and reactive without causing dizziness or nausea.
+/// Modern Neon Fluid / Liquid Lava Lamp Background.
+///
+/// Features:
+/// - Floating, morphing organic liquid blobs with modern neon cyber gradients:
+///   (Electric Cyan #00F0FF, Hot Magenta/Pink #FF007F, Royal Purple #7B2CBF, Emerald Mint #00FFA3)
+/// - Interactive touch physics: tapping or dragging spawns liquid splash droplets & multi-color neon rings
+/// - Scroll-reactive fluid motion: scrolling drives fluid vertical flow and morphing
+/// - Calm, smooth 120 FPS frame rate with no dizziness or harsh panning
 class WaterFlowBackground extends StatefulWidget {
   final Widget? child;
 
@@ -17,65 +23,67 @@ class WaterFlowBackground extends StatefulWidget {
 
 class WaterFlowBackgroundState extends State<WaterFlowBackground>
     with SingleTickerProviderStateMixin {
-  late AnimationController _waveController;
-  final List<_WaterRipple> _ripples = [];
-  double _scrollVelocityOffset = 0.0;
+  late AnimationController _fluidController;
+  final List<_NeonLiquidRipple> _touchRipples = [];
+  double _scrollDisplacement = 0.0;
+  Offset _lastTouchPos = Offset.zero;
 
   @override
   void initState() {
     super.initState();
-    // Gentle continuous water wave animation (120 FPS high-refresh compatible)
-    _waveController = AnimationController(
+    // Continuous smooth organic liquid morphing
+    _fluidController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 14),
     )..repeat();
   }
 
   @override
   void dispose() {
-    _waveController.dispose();
+    _fluidController.dispose();
     super.dispose();
   }
 
-  /// Trigger a gentle water ripple on touch or click
+  /// Trigger interactive neon liquid ripple & splash on touch/tap
   void addTouchRipple(Offset position) {
     if (!mounted) return;
+    _lastTouchPos = position;
     setState(() {
-      _ripples.add(_WaterRipple(
+      _touchRipples.add(_NeonLiquidRipple(
         center: position,
         startTime: DateTime.now(),
+        colorIndex: _touchRipples.length % 4,
       ));
-      // Keep at most 6 active ripples for optimal performance
-      if (_ripples.length > 6) {
-        _ripples.removeAt(0);
+      if (_touchRipples.length > 8) {
+        _touchRipples.removeAt(0);
       }
     });
   }
 
-  /// Trigger fluid displacement on scroll
+  /// Update fluid flow displacement when page scrolls
   void onScrollOffsetUpdate(double scrollOffset) {
     if (!mounted) return;
     setState(() {
-      _scrollVelocityOffset = scrollOffset * 0.15;
+      _scrollDisplacement = scrollOffset * 0.25;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+
     return Listener(
       behavior: HitTestBehavior.translucent,
-      onPointerDown: (event) {
-        addTouchRipple(event.localPosition);
-      },
+      onPointerDown: (event) => addTouchRipple(event.localPosition),
       onPointerMove: (event) {
-        // Add ripple occasionally during drags
-        if (DateTime.now().millisecond % 160 < 25) {
+        // Continuous fluid dragging trail
+        if ((event.localPosition - _lastTouchPos).distance > 45) {
           addTouchRipple(event.localPosition);
         }
       },
       child: Stack(
         children: [
-          // 1. Deep Ocean Cyberpunk Fluid Gradient
+          // 1. Deep Midnight Cyber Void Base
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -83,91 +91,80 @@ class WaterFlowBackgroundState extends State<WaterFlowBackground>
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Color(0xFF030712), // Deep midnight abyss
-                    Color(0xFF071529), // Subtle oceanic blue
-                    Color(0xFF0A1020), // Dark liquid navy
-                    Color(0xFF050811), // Bottom dark void
+                    Color(0xFF030712), // Deepest obsidian
+                    Color(0xFF070B19), // Midnight violet
+                    Color(0xFF0A0F24), // Dark indigo
+                    Color(0xFF04060E), // Base black
                   ],
-                  stops: [0.0, 0.40, 0.75, 1.0],
+                  stops: [0.0, 0.35, 0.7, 1.0],
                 ),
               ),
             ),
           ),
 
-          // 2. Animated Ambient Liquid Caustic Glows (Tenang & Tidak Pusing)
+          // 2. Glowing Neon Liquid Blobs (Organic, Floating, Morphing)
           Positioned.fill(
             child: AnimatedBuilder(
-              animation: _waveController,
+              animation: _fluidController,
               builder: (context, child) {
-                final t = _waveController.value * 2 * math.pi;
-                // Calming sinusoidal liquid drift
-                final driftX1 = math.sin(t) * 35.0;
-                final driftY1 = math.cos(t * 0.8) * 40.0;
+                final t = _fluidController.value * 2 * math.pi;
 
-                final driftX2 = math.cos(t * 1.2) * 45.0;
-                final driftY2 = math.sin(t * 0.9) * 35.0;
+                // Smooth organic harmonic oscillation coordinates
+                final blob1X = math.sin(t) * 45.0 + math.cos(t * 0.7) * 20.0;
+                final blob1Y = math.cos(t * 0.8) * 60.0 - (_scrollDisplacement * 0.3);
+
+                final blob2X = math.cos(t * 0.9) * 55.0;
+                final blob2Y = math.sin(t * 1.1) * 70.0 + (_scrollDisplacement * 0.2);
+
+                final blob3X = math.sin(t * 1.3) * 50.0;
+                final blob3Y = math.cos(t * 0.6) * 45.0 - (_scrollDisplacement * 0.15);
+
+                final blob4X = math.cos(t * 0.7) * 40.0;
+                final blob4Y = math.sin(t * 0.5) * 50.0 + (_scrollDisplacement * 0.25);
 
                 return Stack(
                   children: [
-                    // Deep Azure Liquid Pool (Top Right)
+                    // --- Blob 1: Neon Cyan Electric Fluid (Top Left / Center) ---
                     Positioned(
-                      top: -60 + driftY1 + (_scrollVelocityOffset * 0.2),
-                      right: -60 + driftX1,
-                      child: Container(
-                        width: 380,
-                        height: 380,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              const Color(0xFF00B4D8).withOpacity(0.18),
-                              const Color(0xFF0077B6).withOpacity(0.08),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.50, 1.0],
-                          ),
-                        ),
+                      top: screenSize.height * 0.10 + blob1Y,
+                      left: screenSize.width * 0.05 + blob1X,
+                      child: _buildLiquidGlowBlob(
+                        diameter: 320,
+                        primaryColor: const Color(0xFF00F0FF).withOpacity(0.24), // Vibrant Neon Cyan
+                        secondaryColor: const Color(0xFF0077B6).withOpacity(0.12),
                       ),
                     ),
 
-                    // Bioluminescent Aqua Pool (Bottom Left)
+                    // --- Blob 2: Hot Neon Pink / Magenta Liquid (Right Center) ---
                     Positioned(
-                      bottom: 80 + driftY2 - (_scrollVelocityOffset * 0.2),
-                      left: -80 + driftX2,
-                      child: Container(
-                        width: 420,
-                        height: 420,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              const Color(0xFF00E5FF).withOpacity(0.14),
-                              const Color(0xFF03045E).withOpacity(0.06),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.55, 1.0],
-                          ),
-                        ),
+                      top: screenSize.height * 0.38 + blob2Y,
+                      right: -40 + blob2X,
+                      child: _buildLiquidGlowBlob(
+                        diameter: 340,
+                        primaryColor: const Color(0xFFFF007F).withOpacity(0.22), // Hot Neon Pink
+                        secondaryColor: const Color(0xFF7B2CBF).withOpacity(0.10),
                       ),
                     ),
 
-                    // Center Floating Soft Pearl Glow
+                    // --- Blob 3: Royal Purple / Violet Neon Fluid (Bottom Left) ---
                     Positioned(
-                      top: MediaQuery.of(context).size.height * 0.45 + (driftY1 * 0.6),
-                      right: MediaQuery.of(context).size.width * 0.2 + (driftX2 * 0.5),
-                      child: Container(
-                        width: 280,
-                        height: 280,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              const Color(0xFF48CAE4).withOpacity(0.09),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.70],
-                          ),
-                        ),
+                      bottom: screenSize.height * 0.08 + blob3Y,
+                      left: -50 + blob3X,
+                      child: _buildLiquidGlowBlob(
+                        diameter: 380,
+                        primaryColor: const Color(0xFF8B5CF6).withOpacity(0.25), // Neon Purple
+                        secondaryColor: const Color(0xFF4C1D95).withOpacity(0.12),
+                      ),
+                    ),
+
+                    // --- Blob 4: Emerald Mint Neon Liquid (Bottom Right) ---
+                    Positioned(
+                      bottom: screenSize.height * 0.25 + blob4Y,
+                      right: screenSize.width * 0.08 + blob4X,
+                      child: _buildLiquidGlowBlob(
+                        diameter: 290,
+                        primaryColor: const Color(0xFF00FFA3).withOpacity(0.18), // Electric Mint Green
+                        secondaryColor: const Color(0xFF028090).withOpacity(0.08),
                       ),
                     ),
                   ],
@@ -176,124 +173,180 @@ class WaterFlowBackgroundState extends State<WaterFlowBackground>
             ),
           ),
 
-          // 3. Calm Harmonic Water Waves & Interactive Touch Ripples Canvas
+          // 3. Flowing Liquid Waves & Interactive Touch Splashes Canvas
           Positioned.fill(
             child: AnimatedBuilder(
-              animation: _waveController,
+              animation: _fluidController,
               builder: (context, child) {
-                // Clean up expired ripples older than 1.4 seconds
                 final now = DateTime.now();
-                _ripples.removeWhere(
-                  (r) => now.difference(r.startTime).inMilliseconds > 1400,
+                _touchRipples.removeWhere(
+                  (r) => now.difference(r.startTime).inMilliseconds > 1600,
                 );
 
                 return CustomPaint(
-                  painter: _WaterFlowPainter(
-                    waveProgress: _waveController.value,
-                    ripples: List.from(_ripples),
-                    scrollOffset: _scrollVelocityOffset,
+                  painter: _NeonLiquidPainter(
+                    fluidTime: _fluidController.value,
+                    ripples: List.from(_touchRipples),
+                    scrollDisplacement: _scrollDisplacement,
                   ),
                 );
               },
             ),
           ),
 
-          // 4. Foreground Content Slot (if any)
+          // 4. Foreground Page Content
           if (widget.child != null) widget.child!,
         ],
       ),
     );
   }
+
+  Widget _buildLiquidGlowBlob({
+    required double diameter,
+    required Color primaryColor,
+    required Color secondaryColor,
+  }) {
+    return IgnorePointer(
+      child: Container(
+        width: diameter,
+        height: diameter,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: RadialGradient(
+            colors: [
+              primaryColor,
+              secondaryColor,
+              Colors.transparent,
+            ],
+            stops: const [0.0, 0.45, 1.0],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _WaterRipple {
+class _NeonLiquidRipple {
   final Offset center;
   final DateTime startTime;
+  final int colorIndex;
 
-  _WaterRipple({required this.center, required this.startTime});
+  _NeonLiquidRipple({
+    required this.center,
+    required this.startTime,
+    required this.colorIndex,
+  });
 }
 
-class _WaterFlowPainter extends CustomPainter {
-  final double waveProgress;
-  final List<_WaterRipple> ripples;
-  final double scrollOffset;
+class _NeonLiquidPainter extends CustomPainter {
+  final double fluidTime;
+  final List<_NeonLiquidRipple> ripples;
+  final double scrollDisplacement;
 
-  _WaterFlowPainter({
-    required this.waveProgress,
+  static const List<Color> _neonPalette = [
+    Color(0xFF00F0FF), // Neon Cyan
+    Color(0xFFFF007F), // Neon Pink
+    Color(0xFF8B5CF6), // Neon Violet
+    Color(0xFF00FFA3), // Neon Mint
+  ];
+
+  _NeonLiquidPainter({
+    required this.fluidTime,
     required this.ripples,
-    required this.scrollOffset,
+    required this.scrollDisplacement,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final t = waveProgress * 2 * math.pi;
+    final t = fluidTime * 2 * math.pi;
 
-    // Draw 3 layers of harmonic soft water surface sine waves
-    _drawWave(
+    // 1. Organic Fluid Sine Waves (Liquid Surface Lines with Neon Glow)
+    // Cyan Wave
+    _drawLiquidWave(
       canvas,
       size,
-      amplitude: 14.0,
-      wavelength: size.width * 0.9,
+      amplitude: 16.0,
+      wavelength: size.width * 0.85,
       phase: t,
-      baseY: size.height * 0.28 + (scrollOffset * 0.15),
-      color: const Color(0xFF00E5FF).withOpacity(0.04),
-      strokeWidth: 1.5,
+      baseY: size.height * 0.26 + (scrollDisplacement * 0.1),
+      color: const Color(0xFF00F0FF).withOpacity(0.08),
+      strokeWidth: 2.0,
     );
 
-    _drawWave(
+    // Magenta Wave
+    _drawLiquidWave(
+      canvas,
+      size,
+      amplitude: 22.0,
+      wavelength: size.width * 1.15,
+      phase: t * 0.85 + 1.6,
+      baseY: size.height * 0.52 + (scrollDisplacement * 0.2),
+      color: const Color(0xFFFF007F).withOpacity(0.07),
+      strokeWidth: 2.2,
+    );
+
+    // Mint Green Wave
+    _drawLiquidWave(
       canvas,
       size,
       amplitude: 18.0,
-      wavelength: size.width * 1.2,
-      phase: t * 0.8 + 1.2,
-      baseY: size.height * 0.58 + (scrollOffset * 0.25),
-      color: const Color(0xFF0096C7).withOpacity(0.05),
+      wavelength: size.width * 0.95,
+      phase: t * 1.2 + 2.8,
+      baseY: size.height * 0.78 + (scrollDisplacement * 0.3),
+      color: const Color(0xFF00FFA3).withOpacity(0.06),
       strokeWidth: 1.8,
     );
 
-    _drawWave(
-      canvas,
-      size,
-      amplitude: 12.0,
-      wavelength: size.width * 0.75,
-      phase: t * 1.3 + 2.5,
-      baseY: size.height * 0.82 + (scrollOffset * 0.35),
-      color: const Color(0xFF48CAE4).withOpacity(0.035),
-      strokeWidth: 1.2,
-    );
-
-    // Draw interactive touch/scroll water ripples expanding outward
+    // 2. Interactive Neon Liquid Splashes & Ripples on Touch
     final now = DateTime.now();
     for (final ripple in ripples) {
-      final elapsedMs = now.difference(ripple.startTime).inMilliseconds;
-      if (elapsedMs < 1400) {
-        final progress = elapsedMs / 1400.0; // 0.0 -> 1.0
-        final radius = progress * 160.0; // Expand up to 160px
-        final opacity = (1.0 - progress) * 0.45; // Fade out
+      final elapsed = now.difference(ripple.startTime).inMilliseconds;
+      if (elapsed < 1600) {
+        final progress = elapsed / 1600.0; // 0.0 -> 1.0
+        final radius = progress * 180.0;
+        final opacity = (1.0 - progress);
 
-        // Outer ripple ring
-        final ripplePaint = Paint()
-          ..color = const Color(0xFF00E5FF).withOpacity(opacity)
+        final neonColor = _neonPalette[ripple.colorIndex % _neonPalette.length];
+
+        // Outer expanding neon liquid ring
+        final outerPaint = Paint()
+          ..color = neonColor.withOpacity(opacity * 0.55)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.0 * (1.0 - progress * 0.6);
+          ..strokeWidth = 2.5 * (1.0 - progress * 0.5)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 4);
 
-        canvas.drawCircle(ripple.center, radius, ripplePaint);
+        canvas.drawCircle(ripple.center, radius, outerPaint);
 
-        // Secondary inner echo ring
-        if (progress > 0.2) {
-          final innerRadius = (progress - 0.2) / 0.8 * 120.0;
-          final innerOpacity = (1.0 - progress) * 0.30;
-          final innerPaint = Paint()
-            ..color = const Color(0xFF48CAE4).withOpacity(innerOpacity)
+        // Inner glowing liquid droplet
+        if (progress < 0.6) {
+          final splashOpacity = (1.0 - (progress / 0.6)) * 0.4;
+          final splashPaint = Paint()
+            ..color = neonColor.withOpacity(splashOpacity)
+            ..style = PaintingStyle.fill
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+
+          canvas.drawCircle(ripple.center, (1.0 - progress) * 28.0, splashPaint);
+        }
+
+        // Secondary echo ring
+        if (progress > 0.18) {
+          final innerProgress = (progress - 0.18) / 0.82;
+          final innerRadius = innerProgress * 130.0;
+          final innerOpacity = (1.0 - innerProgress) * 0.35;
+          final nextNeonColor = _neonPalette[(ripple.colorIndex + 1) % _neonPalette.length];
+
+          final echoPaint = Paint()
+            ..color = nextNeonColor.withOpacity(innerOpacity)
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.2;
-          canvas.drawCircle(ripple.center, innerRadius, innerPaint);
+            ..strokeWidth = 1.6;
+
+          canvas.drawCircle(ripple.center, innerRadius, echoPaint);
         }
       }
     }
   }
 
-  void _drawWave(
+  void _drawLiquidWave(
     Canvas canvas,
     Size size, {
     required double amplitude,
@@ -306,12 +359,13 @@ class _WaterFlowPainter extends CustomPainter {
     final paint = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
+      ..strokeWidth = strokeWidth
+      ..maskFilter = const MaskFilter.blur(BlurStyle.solid, 2);
 
     final path = Path();
     path.moveTo(0, baseY + amplitude * math.sin(phase));
 
-    for (double x = 0; x <= size.width; x += 10.0) {
+    for (double x = 0; x <= size.width; x += 12.0) {
       final y = baseY + amplitude * math.sin((x / wavelength * 2 * math.pi) + phase);
       path.lineTo(x, y);
     }
@@ -320,5 +374,5 @@ class _WaterFlowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _WaterFlowPainter oldDelegate) => true;
+  bool shouldRepaint(covariant _NeonLiquidPainter oldDelegate) => true;
 }
