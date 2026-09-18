@@ -18,6 +18,7 @@ class GlassContainer extends StatelessWidget {
   final bool enableBlur;
   final ImageProvider? backgroundImage;
   final double imageOpacity;
+  final Alignment imageAlignment;
 
   const GlassContainer({
     super.key,
@@ -35,6 +36,7 @@ class GlassContainer extends StatelessWidget {
     this.enableBlur = false,
     this.backgroundImage,
     this.imageOpacity = 0.25,
+    this.imageAlignment = Alignment.center,
   });
 
   @override
@@ -76,6 +78,7 @@ class GlassContainer extends StatelessWidget {
                 child: Image(
                   image: backgroundImage!,
                   fit: BoxFit.cover,
+                  alignment: imageAlignment,
                 ),
               ),
             ),
