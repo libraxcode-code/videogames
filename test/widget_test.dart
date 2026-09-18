@@ -13,6 +13,6 @@ void main() {
     await tester.pumpWidget(const VideogamesApp());
     expect(find.byType(VideogamesApp), findsOneWidget);
     await tester.pump(const Duration(milliseconds: 3500));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
   });
 }
