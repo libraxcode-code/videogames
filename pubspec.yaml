@@ -1,4 +1,4 @@
-﻿name: videogames
+name: videogames
 description: "A clean, lite, and maintainable Flutter project structured with Clean Architecture."
 publish_to: 'none'
 version: 1.0.0+1
@@ -23,3 +23,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
