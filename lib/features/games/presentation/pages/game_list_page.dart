@@ -78,11 +78,27 @@ class _GameListPageState extends State<GameListPage>
       backgroundColor: const Color(0xFF060910),
       body: Stack(
         children: [
-          // 1. High-Contrast Vivid Cyberpunk Gaming Wallpaper
+          // 1. High-Contrast Vivid Cyberpunk Gaming Wallpaper with 120 FPS Cinematic Pan & Zoom
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/cyberpunk_bg.jpg',
-              fit: BoxFit.cover,
+            child: AnimatedBuilder(
+              animation: _motionController,
+              builder: (context, child) {
+                // Smooth Ken-Burns dynamic motion
+                final zoom = 1.06 + (0.06 * _pulseAnimation.value);
+                final panX = _driftAnimation.value * 0.8;
+                final panY = _driftAnimation.value * 0.5;
+
+                return Transform.translate(
+                  offset: Offset(panX, panY),
+                  child: Transform.scale(
+                    scale: zoom,
+                    child: Image.asset(
+                      'assets/images/cyberpunk_bg.jpg',
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
 
