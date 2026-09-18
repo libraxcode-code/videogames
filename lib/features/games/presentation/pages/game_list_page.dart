@@ -34,18 +34,18 @@ class _GameListPageState extends State<GameListPage>
     context.read<GameBloc>().add(const FetchGamesEvent());
     _scrollController.addListener(_onScroll);
 
-    // 120 FPS high-refresh atmospheric motion controller
+    // 120 FPS high-refresh atmospheric motion controller with vivid, distinct movement
     _motionController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 8),
+      duration: const Duration(seconds: 4),
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.15).animate(
-      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutSine),
+    _pulseAnimation = Tween<double>(begin: 0.70, end: 1.30).animate(
+      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutQuad),
     );
 
-    _driftAnimation = Tween<double>(begin: -15.0, end: 15.0).animate(
-      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutCubic),
+    _driftAnimation = Tween<double>(begin: -35.0, end: 35.0).animate(
+      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutQuad),
     );
   }
 
@@ -83,10 +83,10 @@ class _GameListPageState extends State<GameListPage>
             child: AnimatedBuilder(
               animation: _motionController,
               builder: (context, child) {
-                // Smooth Ken-Burns dynamic motion
-                final zoom = 1.06 + (0.06 * _pulseAnimation.value);
-                final panX = _driftAnimation.value * 0.8;
-                final panY = _driftAnimation.value * 0.5;
+                // Dynamic motion with vivid travel distance & zoom
+                final zoom = 1.10 + (0.12 * _pulseAnimation.value);
+                final panX = _driftAnimation.value * 1.4;
+                final panY = _driftAnimation.value * 0.8;
 
                 return Transform.translate(
                   offset: Offset(panX, panY),
@@ -102,7 +102,7 @@ class _GameListPageState extends State<GameListPage>
             ),
           ),
 
-          // 2. Cinematic Dark Cyberpunk Overlay - jelas dan kontras tinggi
+          // 2. Translucent Cyberpunk Overlay - jelas, tajam, dan tidak menutupi gerakan gambar
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -110,9 +110,9 @@ class _GameListPageState extends State<GameListPage>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.40),
-                    const Color(0xFF060910).withOpacity(0.70),
-                    const Color(0xFF060910).withOpacity(0.92),
+                    Colors.black.withOpacity(0.20),
+                    const Color(0xFF060910).withOpacity(0.48),
+                    const Color(0xFF060910).withOpacity(0.80),
                   ],
                   stops: const [0.0, 0.45, 1.0],
                 ),
@@ -201,13 +201,63 @@ class _GameListPageState extends State<GameListPage>
             },
           ),
 
-          // 4. Subtle Cyber Digital Grid
+          // 4. Moving Dynamic Cyber Grid & Animated Sweeping Cyber Beam
           Positioned.fill(
-            child: Opacity(
-              opacity: 0.18,
-              child: CustomPaint(
-                painter: _CyberGridPainter(),
-              ),
+            child: AnimatedBuilder(
+              animation: _motionController,
+              builder: (context, child) {
+                final drift = _driftAnimation.value;
+                final sweepProgress = _motionController.value;
+
+                return Stack(
+                  children: [
+                    // Moving Digital Grid
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: 0.28,
+                        child: CustomPaint(
+                          painter: _CyberGridPainter(offsetX: drift * 0.8, offsetY: drift * 0.5),
+                        ),
+                      ),
+                    ),
+
+                    // Continuous Vivid Neon Sweeping Laser Beam
+                    Positioned(
+                      top: sweepProgress * MediaQuery.of(context).size.height,
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        height: 2.5,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.transparent,
+                              const Color(0xFF00E5FF).withOpacity(0.1),
+                              const Color(0xFF00E5FF).withOpacity(0.85),
+                              const Color(0xFFD500F9).withOpacity(0.85),
+                              const Color(0xFF00E5FF).withOpacity(0.1),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.2, 0.45, 0.55, 0.8, 1.0],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00E5FF).withOpacity(0.6),
+                              blurRadius: 16,
+                              spreadRadius: 2,
+                            ),
+                            BoxShadow(
+                              color: const Color(0xFFD500F9).withOpacity(0.4),
+                              blurRadius: 28,
+                              spreadRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
 
@@ -484,21 +534,30 @@ class _GameListPageState extends State<GameListPage>
 }
 
 class _CyberGridPainter extends CustomPainter {
+  final double offsetX;
+  final double offsetY;
+
+  const _CyberGridPainter({this.offsetX = 0.0, this.offsetY = 0.0});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = const Color(0xFF00E5FF).withOpacity(0.08)
-      ..strokeWidth = 0.5;
+      ..color = const Color(0xFF00E5FF).withOpacity(0.14)
+      ..strokeWidth = 0.6;
 
-    const step = 42.0;
-    for (double x = 0; x < size.width; x += step) {
+    const step = 44.0;
+    final startX = (offsetX % step) - step;
+    final startY = (offsetY % step) - step;
+
+    for (double x = startX; x < size.width + step; x += step) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
     }
-    for (double y = 0; y < size.height; y += step) {
+    for (double y = startY; y < size.height + step; y += step) {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _CyberGridPainter oldDelegate) =>
+      oldDelegate.offsetX != offsetX || oldDelegate.offsetY != offsetY;
 }
