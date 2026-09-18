@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../domain/entities/game_entity.dart';
+import '../../../domain/entities/game_entity.dart';
 
 /// Reusable Cyberpunk Glass SliverAppBar with hero banner and back button.
 class GameDetailAppBar extends StatelessWidget {

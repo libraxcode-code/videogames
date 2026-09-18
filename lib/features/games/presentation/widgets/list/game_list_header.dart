@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/glass_container.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/widgets/glass_container.dart';
 
 /// Cyberpunk glass header showing PlayStation 5 branding, LIVE API status, and refresh button.
 class GameListHeader extends StatelessWidget {
