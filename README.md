@@ -1,5 +1,5 @@
 <p align="center">
-  <video src="sample.mp4" width="300" controls>
+  <video src="https://github.com/libraxcode-code/videogames/raw/main/sample.mp4" width="300" controls>
     Your browser does not support the video tag.
   </video>
 </p>
