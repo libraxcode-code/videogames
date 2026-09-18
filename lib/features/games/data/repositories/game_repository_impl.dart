@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/game_entity.dart';
@@ -16,20 +16,41 @@ class GameRepositoryImpl implements GameRepository {
   });
 
   @override
-  Future<Either<Failure, List<GameEntity>>> getGames({bool forceRefresh = false}) async {
+  Future<Either<Failure, List<GameEntity>>> getGames({
+    int page = 1,
+    int pageSize = 20,
+    bool forceRefresh = false,
+    String? searchQuery,
+  }) async {
     try {
       if (!forceRefresh) {
-        final cached = await localDataSource.getCachedGames();
+        final cached = await localDataSource.getCachedGames(
+          page: page,
+          searchQuery: searchQuery,
+        );
         if (cached.isNotEmpty) {
           return Right(cached);
         }
       }
 
-      final remoteGames = await remoteDataSource.fetchGames();
-      await localDataSource.cacheGames(remoteGames);
+      final remoteGames = await remoteDataSource.fetchGames(
+        page: page,
+        pageSize: pageSize,
+        searchQuery: searchQuery,
+      );
+
+      await localDataSource.cacheGames(
+        remoteGames,
+        page: page,
+        searchQuery: searchQuery,
+      );
+
       return Right(remoteGames);
     } on NetworkException catch (e) {
-      final cached = await localDataSource.getCachedGames();
+      final cached = await localDataSource.getCachedGames(
+        page: page,
+        searchQuery: searchQuery,
+      );
       if (cached.isNotEmpty) {
         return Right(cached);
       }
@@ -44,19 +65,20 @@ class GameRepositoryImpl implements GameRepository {
   @override
   Future<Either<Failure, GameEntity>> getGameById(String id) async {
     try {
-      final cached = await localDataSource.getCachedGames();
-      final fromCache = cached.where((g) => g.id == id);
-      if (fromCache.isNotEmpty) {
-        return Right(fromCache.first);
+      final cached = await localDataSource.getCachedGameDetail(id);
+      if (cached != null && cached.description.isNotEmpty && cached.description.length > 120) {
+        return Right(cached);
       }
 
-      final remoteGames = await remoteDataSource.fetchGames();
-      await localDataSource.cacheGames(remoteGames);
-      final game = remoteGames.firstWhere(
-        (g) => g.id == id,
-        orElse: () => throw const ServerException(message: 'Game not found'),
-      );
-      return Right(game);
+      final remoteGame = await remoteDataSource.fetchGameDetail(id);
+      await localDataSource.cacheGameDetail(remoteGame);
+      return Right(remoteGame);
+    } on NetworkException catch (e) {
+      final cached = await localDataSource.getCachedGameDetail(id);
+      if (cached != null) {
+        return Right(cached);
+      }
+      return Left(NetworkFailure(message: e.message));
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message));
     } catch (e) {
