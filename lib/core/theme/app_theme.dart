@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
 abstract class AppTheme {
@@ -19,7 +19,7 @@ abstract class AppTheme {
         foregroundColor: AppColors.textPrimaryLight,
         iconTheme: IconThemeData(color: AppColors.textPrimaryLight),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surfaceLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -47,7 +47,7 @@ abstract class AppTheme {
         foregroundColor: AppColors.textPrimaryDark,
         iconTheme: IconThemeData(color: AppColors.textPrimaryDark),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.surfaceDark,
         elevation: 0,
         shape: RoundedRectangleBorder(
