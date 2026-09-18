@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/game_entity.dart';
 import '../../domain/usecases/get_game_detail_usecase.dart';
-import '../widgets/game_detail_app_bar.dart';
-import '../widgets/game_detail_content.dart';
-import '../widgets/game_stats_row.dart';
-import '../widgets/water_flow_background.dart';
+import '../widgets/background/water_flow_background.dart';
+import '../widgets/detail/game_detail_app_bar.dart';
+import '../widgets/detail/game_detail_content.dart';
+import '../widgets/detail/game_stats_row.dart';
 
 class GameDetailPage extends StatefulWidget {
   final GameEntity initialGame;

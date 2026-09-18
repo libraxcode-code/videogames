@@ -7,10 +7,10 @@ import '../../domain/usecases/get_game_detail_usecase.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
-import '../widgets/game_list_empty_error_views.dart';
-import '../widgets/game_list_header.dart';
-import '../widgets/game_list_view.dart';
-import '../widgets/water_flow_background.dart';
+import '../widgets/background/water_flow_background.dart';
+import '../widgets/list/game_list_empty_error_views.dart';
+import '../widgets/list/game_list_header.dart';
+import '../widgets/list/game_list_view.dart';
 import 'game_detail_page.dart';
 
 class GameListPage extends StatefulWidget {

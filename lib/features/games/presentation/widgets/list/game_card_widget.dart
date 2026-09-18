@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/glass_container.dart';
-import '../../domain/entities/game_entity.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/widgets/glass_container.dart';
+import '../../../domain/entities/game_entity.dart';
 
 class GameCardWidget extends StatelessWidget {
   final GameEntity game;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/glass_skeleton_loading.dart';
-import '../../domain/entities/game_entity.dart';
+import '../../../../../core/widgets/glass_skeleton_loading.dart';
+import '../../../domain/entities/game_entity.dart';
 import 'game_card_widget.dart';
 
 /// Scrollable game list content supporting pull-to-refresh, infinite scroll pagination,

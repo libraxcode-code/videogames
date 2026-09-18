@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/glass_container.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/widgets/glass_container.dart';
 
 /// Cyberpunk glass error state with retry button.
 class GameListErrorView extends StatelessWidget {
