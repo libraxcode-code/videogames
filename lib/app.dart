@@ -1,6 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
-import 'features/games/presentation/pages/game_list_page.dart';
+import 'features/splash/presentation/pages/gaming_splash_screen.dart';
 import 'injection_container.dart';
 
 class VideogamesApp extends StatelessWidget {
@@ -15,7 +15,7 @@ class VideogamesApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        home: const GameListPage(),
+        home: const GamingSplashScreen(),
       ),
     );
   }
