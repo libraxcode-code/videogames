@@ -1,0 +1,48 @@
+name: Build & Release APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Test & Build Release APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter Environment
+        run: flutter doctor -v
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Run Unit & Widget Tests
+        run: flutter test
+
+      - name: Build Release APK
+        run: flutter build apk --release
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: videogames-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
