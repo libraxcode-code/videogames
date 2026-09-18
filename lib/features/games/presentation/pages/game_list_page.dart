@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -20,15 +19,34 @@ class GameListPage extends StatefulWidget {
   State<GameListPage> createState() => _GameListPageState();
 }
 
-class _GameListPageState extends State<GameListPage> {
+class _GameListPageState extends State<GameListPage>
+    with SingleTickerProviderStateMixin {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
+
+  late final AnimationController _motionController;
+  late final Animation<double> _pulseAnimation;
+  late final Animation<double> _driftAnimation;
 
   @override
   void initState() {
     super.initState();
     context.read<GameBloc>().add(const FetchGamesEvent());
     _scrollController.addListener(_onScroll);
+
+    // 120 FPS high-refresh atmospheric motion controller
+    _motionController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 8),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutSine),
+    );
+
+    _driftAnimation = Tween<double>(begin: -15.0, end: 15.0).animate(
+      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutCubic),
+    );
   }
 
   void _onScroll() {
@@ -46,6 +64,7 @@ class _GameListPageState extends State<GameListPage> {
 
   @override
   void dispose() {
+    _motionController.dispose();
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -56,16 +75,18 @@ class _GameListPageState extends State<GameListPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9),
+      backgroundColor: const Color(0xFF060910),
       body: Stack(
         children: [
-          // 0. High Resolution Cyberpunk Gaming Wallpaper with Dark Atmospheric Overlay
+          // 1. High-Contrast Vivid Cyberpunk Gaming Wallpaper
           Positioned.fill(
             child: Image.asset(
               'assets/images/cyberpunk_bg.jpg',
               fit: BoxFit.cover,
             ),
           ),
+
+          // 2. Cinematic Dark Cyberpunk Overlay - jelas dan kontras tinggi
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
@@ -73,84 +94,108 @@ class _GameListPageState extends State<GameListPage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    (isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9))
-                        .withOpacity(isDark ? 0.85 : 0.80),
-                    (isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9))
-                        .withOpacity(isDark ? 0.96 : 0.92),
+                    Colors.black.withOpacity(0.40),
+                    const Color(0xFF060910).withOpacity(0.70),
+                    const Color(0xFF060910).withOpacity(0.92),
                   ],
+                  stops: const [0.0, 0.45, 1.0],
                 ),
               ),
             ),
           ),
 
-          // 1. Ultra Modern Cyberpunk Deep Dark Background Mesh Gradients
-          Positioned(
-            top: -100,
-            right: -80,
-            child: Container(
-              width: 380,
-              height: 380,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF00E5FF).withOpacity(isDark ? 0.22 : 0.14),
-                    const Color(0xFF0070D1).withOpacity(isDark ? 0.12 : 0.08),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
-                ),
-              ),
-            ),
+          // 3. Living 120 FPS Floating Cyberpunk Plasma Orbs (Bergerak Halus)
+          AnimatedBuilder(
+            animation: _motionController,
+            builder: (context, child) {
+              final pulse = _pulseAnimation.value;
+              final drift = _driftAnimation.value;
+
+              return Stack(
+                children: [
+                  // Cyan Neon Pulse Orb (Kanan Atas)
+                  Positioned(
+                    top: -40 + drift,
+                    right: -40 - drift,
+                    child: Transform.scale(
+                      scale: pulse,
+                      child: Container(
+                        width: 320,
+                        height: 320,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              const Color(0xFF00E5FF).withOpacity(0.35),
+                              const Color(0xFF0070D1).withOpacity(0.18),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.45, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Electric Purple Neon Drift Orb (Kiri Tengah)
+                  Positioned(
+                    top: 240 - drift,
+                    left: -70 + drift,
+                    child: Transform.scale(
+                      scale: 2.0 - pulse,
+                      child: Container(
+                        width: 340,
+                        height: 340,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: RadialGradient(
+                            colors: [
+                              const Color(0xFF7C4DFF).withOpacity(0.30),
+                              const Color(0xFFD500F9).withOpacity(0.14),
+                              Colors.transparent,
+                            ],
+                            stops: const [0.0, 0.45, 1.0],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Emerald Accent Orb (Kanan Bawah)
+                  Positioned(
+                    bottom: 40 + drift,
+                    right: -50,
+                    child: Container(
+                      width: 260,
+                      height: 260,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            const Color(0xFF10B981).withOpacity(0.18),
+                            Colors.transparent,
+                          ],
+                          stops: const [0.0, 0.6],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
-          Positioned(
-            top: 240,
-            left: -120,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF7C4DFF).withOpacity(isDark ? 0.18 : 0.10),
-                    const Color(0xFFD500F9).withOpacity(isDark ? 0.08 : 0.04),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.5, 1.0],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -80,
-            right: -60,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF00E5FF).withOpacity(isDark ? 0.14 : 0.08),
-                    Colors.transparent,
-                  ],
-                ),
+
+          // 4. Subtle Cyber Digital Grid
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.18,
+              child: CustomPaint(
+                painter: _CyberGridPainter(),
               ),
             ),
           ),
 
-          // Cyber subtle grid overlay
-          if (isDark)
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.15,
-                child: CustomPaint(
-                  painter: _CyberGridPainter(),
-                ),
-              ),
-            ),
-
+          // 5. Main Content Layer
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,7 +262,7 @@ class _GameListPageState extends State<GameListPage> {
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: isDark
-                                      ? Colors.white.withOpacity(0.55)
+                                      ? Colors.white.withOpacity(0.70)
                                       : AppColors.textSecondaryLight,
                                 ),
                               ),
