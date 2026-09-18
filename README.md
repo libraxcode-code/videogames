@@ -76,9 +76,9 @@ lib/
 |       |-- bloc/                         # GameBloc, GameEvent, GameState
 |       |-- pages/                        # GameListPage, GameDetailPage
 |       |-- widgets/                      # Modular UI components
-|           |-- background/               # WaterFlowBackground, LivingCyberBackground
+|           |-- background/               # WaterFlowBackground
 |           |-- list/                     # GameCardWidget, GameListHeader, GameListView, Empty/Error Views
-|           |-- detail/                   # GameDetailAppBar, GameStatsRow, GameDetailContent
+|           |-- detail/                   # GameDetailAppBar, GameStatsRow, GameDetailContent, Trailer components
 |
 |-- injection_container.dart              # Dependency Injection setup
 |-- app.dart                              # MaterialApp & Global Providers
@@ -93,7 +93,7 @@ lib/
 - Dart SDK: >= 3.0.0 < 4.0.0
 - Java Development Kit (JDK): Java 17 LTS
 - Android Studio / SDK Platform: API 34+
-- RAWG API Key: Included by default (02ef6ba5d13444ee86bad607e8bce3f4)
+- RAWG API Key: Get a free API key at https://rawg.io/apidocs
 
 ---
 
