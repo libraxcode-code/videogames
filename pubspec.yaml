@@ -17,6 +17,7 @@ dependencies:
   http: ^1.2.1
   dio: ^5.11.1
   crypto: ^3.0.7
+  video_player: ^2.14.0
 
 dev_dependencies:
   flutter_test:

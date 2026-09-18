@@ -13,6 +13,8 @@ class GameEntity extends Equatable {
   final List<String> developers;
   final List<String> publishers;
   final String website;
+  final String? trailerUrl;
+  final String? trailerPreview;
 
   const GameEntity({
     required this.id,
@@ -27,6 +29,8 @@ class GameEntity extends Equatable {
     this.developers = const [],
     this.publishers = const [],
     this.website = '',
+    this.trailerUrl,
+    this.trailerPreview,
   });
 
   @override
@@ -43,5 +47,7 @@ class GameEntity extends Equatable {
         developers,
         publishers,
         website,
+        trailerUrl,
+        trailerPreview,
       ];
 }

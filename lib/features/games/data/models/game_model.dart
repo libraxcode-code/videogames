@@ -14,6 +14,8 @@ class GameModel extends GameEntity {
     super.developers = const [],
     super.publishers = const [],
     super.website = '',
+    super.trailerUrl,
+    super.trailerPreview,
   });
 
   factory GameModel.fromJson(Map<String, dynamic> json) {
@@ -76,6 +78,8 @@ class GameModel extends GameEntity {
     }
 
     final website = json['website'] as String? ?? '';
+    final trailerUrl = json['trailer_url'] as String?;
+    final trailerPreview = json['trailer_preview'] as String?;
 
     return GameModel(
       id: id,
@@ -90,6 +94,30 @@ class GameModel extends GameEntity {
       developers: developers,
       publishers: publishers,
       website: website,
+      trailerUrl: trailerUrl,
+      trailerPreview: trailerPreview,
+    );
+  }
+
+  GameModel copyWithTrailer({
+    String? trailerUrl,
+    String? trailerPreview,
+  }) {
+    return GameModel(
+      id: id,
+      title: title,
+      genre: genre,
+      rating: rating,
+      metacritic: metacritic,
+      releaseDate: releaseDate,
+      description: description,
+      imageUrl: imageUrl,
+      platforms: platforms,
+      developers: developers,
+      publishers: publishers,
+      website: website,
+      trailerUrl: trailerUrl ?? this.trailerUrl,
+      trailerPreview: trailerPreview ?? this.trailerPreview,
     );
   }
 
