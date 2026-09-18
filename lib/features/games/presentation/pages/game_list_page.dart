@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -58,6 +59,36 @@ class _GameListPageState extends State<GameListPage> {
       backgroundColor: isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9),
       body: Stack(
         children: [
+          // 0. High Resolution Cyberpunk Gaming Wallpaper with Dark Atmospheric Overlay
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/cyberpunk_bg.jpg',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    (isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9))
+                        .withOpacity(isDark ? 0.88 : 0.82),
+                    (isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9))
+                        .withOpacity(isDark ? 0.94 : 0.89),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: const SizedBox.expand(),
+            ),
+          ),
+
           // 1. Ultra Modern Cyberpunk Deep Dark Background Mesh Gradients
           Positioned(
             top: -100,
