@@ -39,15 +39,8 @@ class MainActivity : FlutterActivity() {
                 val layoutParams = window.attributes
                 if (targetId != 0) {
                     layoutParams.preferredDisplayModeId = targetId
+                    window.attributes = layoutParams
                 }
-
-                // Android 11+ explicit frame rate request
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    layoutParams.preferredMinDisplayRefreshRate = maxRate
-                    layoutParams.preferredMaxDisplayRefreshRate = maxRate
-                }
-
-                window.attributes = layoutParams
             }
         }
     }
