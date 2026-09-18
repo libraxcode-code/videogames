@@ -1,3 +1,9 @@
+<p align="center">
+  <video src="sample.mp4" width="300" controls>
+    Your browser does not support the video tag.
+  </video>
+</p>
+
 # PlayStation 5 Games Vault - Mobile App
 
 A Flutter application built with Clean Architecture and BLoC State Management to browse the latest released PlayStation 5 games, view comprehensive game details, and provide an interactive modern visual experience.
