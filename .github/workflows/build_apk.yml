@@ -3,13 +3,14 @@ name: Build & Release APK
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: Test & Build Release APK
+    name: Test, Build & Publish Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -37,12 +38,38 @@ jobs:
       - name: Run Unit & Widget Tests
         run: flutter test
 
-      - name: Build Release APK
-        run: flutter build apk --release
+      - name: Build Optimized Split & Universal Release APKs
+        run: |
+          flutter build apk --release --split-per-abi
+          flutter build apk --release
 
-      - name: Upload Release APK
+      - name: Prepare APK Artifacts for Release
+        run: |
+          mkdir -p release_artifacts
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk release_artifacts/app-arm64-v8a-release.apk
+          cp build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk release_artifacts/app-armeabi-v7a-release.apk
+          cp build/app/outputs/flutter-apk/app-release.apk release_artifacts/app-release.apk
+
+      - name: Upload APKs to GitHub Actions Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: videogames-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          name: videogames-release-apks
+          path: release_artifacts/*
           retention-days: 30
+
+      - name: Publish or Update GitHub Rolling Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest Release (Continuous Delivery)"
+          body: |
+            Automated production build generated from commit `${{ github.sha }}`.
+
+            ### Downloads:
+            - **[app-arm64-v8a-release.apk](https://github.com/libraxcode-code/videogames/releases/latest/download/app-arm64-v8a-release.apk)** (~19MB - Recommended for modern Android smartphones)
+            - **[app-armeabi-v7a-release.apk](https://github.com/libraxcode-code/videogames/releases/latest/download/app-armeabi-v7a-release.apk)** (~17MB - For legacy 32-bit Android devices)
+            - **[app-release.apk](https://github.com/libraxcode-code/videogames/releases/latest/download/app-release.apk)** (~52MB - Universal fat binary)
+          files: release_artifacts/*
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
