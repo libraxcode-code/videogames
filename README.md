@@ -4,6 +4,16 @@ A Flutter application built with Clean Architecture and BLoC State Management to
 
 ---
 
+## Direct Download APK
+
+Download the latest production release APK for Android directly from the GitHub Continuous Delivery pipeline:
+
+- [Download Release APK (ARM64 ~19MB - Recommended for modern smartphones)](https://github.com/libraxcode-code/videogames/releases/latest/download/app-arm64-v8a-release.apk)
+- [Download Universal Release APK (~52MB - All architectures)](https://github.com/libraxcode-code/videogames/releases/latest/download/app-release.apk)
+- [View All Releases and Changelogs](https://github.com/libraxcode-code/videogames/releases)
+
+---
+
 ## Technical Assessment Requirements and Status Matrix
 
 | Number | Requirement | Implementation Status | Evidence / Location |
