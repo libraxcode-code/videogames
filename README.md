@@ -1,7 +1,7 @@
 <p align="center">
-  <video src="https://github.com/libraxcode-code/videogames/raw/main/sample.mp4" width="300" controls>
-    Your browser does not support the video tag.
-  </video>
+  <a href="https://github.com/libraxcode-code/videogames/raw/main/sample.mp4">
+    🎬 See the Sample Video Demo
+  </a>
 </p>
 
 # PlayStation 5 Games Vault - Mobile App
