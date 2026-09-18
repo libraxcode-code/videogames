@@ -99,10 +99,10 @@ class GameCardSkeletonWidget extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Square image skeleton (108 x 108)
+            // Square image skeleton (100 x 100)
             const GlassSkeletonItem(
-              width: 108,
-              height: 108,
+              width: 100,
+              height: 100,
               borderRadius: 16,
             ),
             const SizedBox(width: 14),
