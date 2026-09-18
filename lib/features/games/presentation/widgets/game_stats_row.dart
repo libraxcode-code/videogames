@@ -45,36 +45,42 @@ class GameStatsRow extends StatelessWidget {
 
     return Row(
       children: [
-        // 1. Metascore Card
+        // 1. Metascore Card (if available)
         if (game.metacritic > 0) ...[
           Expanded(
-            child: GlassContainer(
-              borderRadius: 16,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-              border: Border.all(
-                color: metacriticColor.withOpacity(0.4),
-                width: 1.2,
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    '${game.metacritic}',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: metacriticColor,
+            child: SizedBox(
+              height: 76,
+              child: GlassContainer(
+                borderRadius: 16,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                border: Border.all(
+                  color: metacriticColor.withOpacity(0.5),
+                  width: 1.2,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${game.metacritic}',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.w900,
+                        color: metacriticColor,
+                        height: 1.1,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  const Text(
-                    'METASCORE',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.0,
+                    const SizedBox(height: 3),
+                    const Text(
+                      'METASCORE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: Colors.white70,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -83,36 +89,43 @@ class GameStatsRow extends StatelessWidget {
 
         // 2. RAWG Rating Card
         Expanded(
-          child: GlassContainer(
-            borderRadius: 16,
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.star_rounded, color: AppColors.warning, size: 22),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${game.rating}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
+          child: SizedBox(
+            height: 76,
+            child: GlassContainer(
+              borderRadius: 16,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star_rounded, color: AppColors.warning, size: 20),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${game.rating}',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          height: 1.1,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'RAWG RATING',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.0,
+                    ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 3),
+                  const Text(
+                    'RAWG RATING',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -120,40 +133,52 @@ class GameStatsRow extends StatelessWidget {
 
         // 3. Release Date Card
         Expanded(
-          child: GlassContainer(
-            borderRadius: 16,
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.calendar_month_rounded,
-                  size: 20,
-                  color: Color(0xFF00E5FF),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _formatReleaseDate(game.releaseDate),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.2,
+          child: SizedBox(
+            height: 76,
+            child: GlassContainer(
+              borderRadius: 16,
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_rounded,
+                        size: 14,
+                        color: Color(0xFF00E5FF),
+                      ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          _formatReleaseDate(game.releaseDate),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            height: 1.1,
+                          ),
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                const Text(
-                  'RELEASE',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1.0,
+                  const SizedBox(height: 6),
+                  const Text(
+                    'RELEASE DATE',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                      color: Colors.white70,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
