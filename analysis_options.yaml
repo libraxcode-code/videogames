@@ -1,4 +1,4 @@
-﻿include: package:flutter_lints/flutter.yaml
+include: package:flutter_lints/flutter.yaml
 
 analyzer:
   language:
@@ -9,6 +9,8 @@ analyzer:
     missing_required_param: error
     missing_return: error
     todo: ignore
+  exclude:
+    - build/**
 
 linter:
   rules:

@@ -10,7 +10,7 @@ class VideogamesApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return InjectionContainer(
       child: MaterialApp(
-        title: 'Videogames Clean Arch',
+        title: 'Videogames',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
