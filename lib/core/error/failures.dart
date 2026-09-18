@@ -1,4 +1,4 @@
-﻿import 'package:equatable/equatable.dart';
+import 'package:equatable/equatable.dart';
 
 abstract class Failure extends Equatable {
   final String message;
@@ -15,20 +15,20 @@ abstract class Failure extends Equatable {
 
 class ServerFailure extends Failure {
   const ServerFailure({
-    super.message = 'Terjadi kesalahan pada server. Silakan coba lagi.',
+    super.message = 'A server error occurred. Please try again.',
     super.statusCode,
   });
 }
 
 class NetworkFailure extends Failure {
   const NetworkFailure({
-    super.message = 'Koneksi internet bermasalah. Periksa jaringan Anda.',
+    super.message = 'Internet connection issue. Please check your network.',
   });
 }
 
 class CacheFailure extends Failure {
   const CacheFailure({
-    super.message = 'Gagal memproses data lokal / cache.',
+    super.message = 'Failed to process local storage or cache.',
   });
 }
 
