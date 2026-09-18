@@ -45,41 +45,35 @@ class GameCardWidget extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // 1. Precise Square 108x108 AspectRatio Container with Glass Edge & Glow
-              Container(
-                width: 108,
-                height: 108,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xFF00E5FF).withOpacity(0.25)
-                        : AppColors.primary.withOpacity(0.2),
-                    width: 1.2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00E5FF).withOpacity(isDark ? 0.18 : 0.12),
-                      blurRadius: 14,
-                      offset: const Offset(0, 4),
+              // 1. Precise Square 100x100 Container with Center Crop Fill
+              SizedBox(
+                width: 100,
+                height: 100,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: isDark
+                          ? const Color(0xFF00E5FF).withOpacity(0.28)
+                          : AppColors.primary.withOpacity(0.2),
+                      width: 1.2,
                     ),
-                    if (isDark)
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.4),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+                        color: const Color(0xFF00E5FF).withOpacity(isDark ? 0.16 : 0.10),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15),
-                  child: AspectRatio(
-                    aspectRatio: 1.0,
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
                     child: Image.network(
                       game.imageUrl,
+                      width: 100,
+                      height: 100,
                       fit: BoxFit.cover,
-                      cacheWidth: 216,
-                      cacheHeight: 216,
+                      alignment: Alignment.center,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Container(
@@ -101,7 +95,7 @@ class GameCardWidget extends StatelessWidget {
                         child: const Icon(
                           Icons.videogame_asset_rounded,
                           color: AppColors.primary,
-                          size: 38,
+                          size: 36,
                         ),
                       ),
                     ),
