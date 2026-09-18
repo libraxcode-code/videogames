@@ -62,282 +62,274 @@ class _GameListPageState extends State<GameListPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
-      body: Stack(
-        children: [
-          // 1. Calming Water Flow Background with Touch & Scroll Ripples
-          Positioned.fill(
-            child: WaterFlowBackground(
-              key: _waterBgKey,
-            ),
-          ),
-
-          // 2. Main Content Layer
-          SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Header with Glass Container
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: GlassContainer(
-                    borderRadius: 22,
-                    blur: 18,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(9),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF003791), Color(0xFF00E5FF)],
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.sports_esports_rounded,
-                            color: Colors.white,
-                            size: 20,
+      body: WaterFlowBackground(
+        key: _waterBgKey,
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Top Header with Glass Container
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: GlassContainer(
+                  borderRadius: 22,
+                  blur: 18,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(9),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF003791), Color(0xFF00E5FF)],
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    'PLAYSTATION 5',
+                        child: const Icon(
+                          Icons.sports_esports_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  'PLAYSTATION 5',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.2,
+                                    color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF10B981).withOpacity(0.18),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: const Text(
+                                    'LIVE API',
                                     style: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: 9,
                                       fontWeight: FontWeight.w900,
-                                      letterSpacing: 1.2,
-                                      color: isDark ? Colors.white : AppColors.textPrimaryLight,
+                                      color: Color(0xFF10B981),
                                     ),
                                   ),
-                                  const SizedBox(width: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981).withOpacity(0.18),
-                                      borderRadius: BorderRadius.circular(4),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Latest Released PS5 Vault • SSL Pinned',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: isDark
+                                    ? Colors.white.withOpacity(0.70)
+                                    : AppColors.textSecondaryLight,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh_rounded),
+                        tooltip: 'Refresh Data',
+                        onPressed: () {
+                          context.read<GameBloc>().add(
+                                FetchGamesEvent(
+                                  forceRefresh: true,
+                                  searchQuery: _searchController.text.trim(),
+                                ),
+                              );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Glass Search Bar connected to BLoC
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: GlassSearchBar(
+                  controller: _searchController,
+                  hintText: 'Search PlayStation 5 games...',
+                  onChanged: (query) {
+                    context.read<GameBloc>().add(SearchGamesEvent(query));
+                  },
+                  onClear: () {
+                    context.read<GameBloc>().add(const SearchGamesEvent(''));
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              // Body List Content with Skeleton Loading
+              Expanded(
+                child: BlocBuilder<GameBloc, GameState>(
+                  builder: (context, state) {
+                    // Skeleton Loading View
+                    if (state is GameLoadingState) {
+                      return ListView.builder(
+                        physics: const NeverScrollableScrollPhysics(),
+                        padding: const EdgeInsets.only(top: 4, bottom: 20),
+                        itemCount: 6,
+                        itemBuilder: (context, index) => const GameCardSkeletonWidget(),
+                      );
+                    }
+
+                    if (state is GameErrorState) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: GlassContainer(
+                            padding: const EdgeInsets.all(24.0),
+                            borderRadius: 24,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.error_outline_rounded,
+                                  color: AppColors.error,
+                                  size: 48,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  state.message,
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton.icon(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF6366F1),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: const Text(
-                                      'LIVE API',
-                                      style: TextStyle(
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w900,
-                                        color: Color(0xFF10B981),
-                                      ),
+                                  ),
+                                  onPressed: () {
+                                    context.read<GameBloc>().add(
+                                          FetchGamesEvent(
+                                            forceRefresh: true,
+                                            searchQuery: state.activeQuery,
+                                          ),
+                                        );
+                                  },
+                                  icon: const Icon(Icons.refresh_rounded),
+                                  label: const Text('Try Again'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    if (state is GameLoadedState) {
+                      if (state.games.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32.0),
+                            child: GlassContainer(
+                              padding: const EdgeInsets.all(24),
+                              borderRadius: 20,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.search_off_rounded,
+                                    size: 48,
+                                    color: isDark ? Colors.white38 : Colors.black38,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    state.activeQuery.isEmpty
+                                        ? 'No PS5 games found.'
+                                        : 'No PS5 games found for "${state.activeQuery}"',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.black87,
                                     ),
                                   ),
                                 ],
                               ),
-                              Text(
-                                'Latest Released PS5 Vault • SSL Pinned',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isDark
-                                      ? Colors.white.withOpacity(0.70)
-                                      : AppColors.textSecondaryLight,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.refresh_rounded),
-                          tooltip: 'Refresh Data',
-                          onPressed: () {
-                            context.read<GameBloc>().add(
-                                  FetchGamesEvent(
-                                    forceRefresh: true,
-                                    searchQuery: _searchController.text.trim(),
-                                  ),
-                                );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                 // Glass Search Bar connected to BLoC
-                 Padding(
-                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                   child: GlassSearchBar(
-                     controller: _searchController,
-                     hintText: 'Search PlayStation 5 games...',
-                     onChanged: (query) {
-                       context.read<GameBloc>().add(SearchGamesEvent(query));
-                     },
-                     onClear: () {
-                       context.read<GameBloc>().add(const SearchGamesEvent(''));
-                     },
-                   ),
-                 ),
-
-                 const SizedBox(height: 6),
-
-                 // Body List Content with Skeleton Loading
-                 Expanded(
-                   child: BlocBuilder<GameBloc, GameState>(
-                     builder: (context, state) {
-                       // Skeleton Loading View
-                       if (state is GameLoadingState) {
-                         return ListView.builder(
-                           physics: const NeverScrollableScrollPhysics(),
-                           padding: const EdgeInsets.only(top: 4, bottom: 20),
-                           itemCount: 6,
-                           itemBuilder: (context, index) => const GameCardSkeletonWidget(),
-                         );
-                       }
-
-                       if (state is GameErrorState) {
-                         return Center(
-                           child: Padding(
-                             padding: const EdgeInsets.all(24.0),
-                             child: GlassContainer(
-                               padding: const EdgeInsets.all(24.0),
-                               borderRadius: 24,
-                               child: Column(
-                                 mainAxisSize: MainAxisSize.min,
-                                 mainAxisAlignment: MainAxisAlignment.center,
-                                 children: [
-                                   const Icon(
-                                     Icons.error_outline_rounded,
-                                     color: AppColors.error,
-                                     size: 48,
-                                   ),
-                                   const SizedBox(height: 12),
-                                   Text(
-                                     state.message,
-                                     textAlign: TextAlign.center,
-                                     style: const TextStyle(fontSize: 14),
-                                   ),
-                                   const SizedBox(height: 16),
-                                   ElevatedButton.icon(
-                                     style: ElevatedButton.styleFrom(
-                                       backgroundColor: const Color(0xFF6366F1),
-                                       foregroundColor: Colors.white,
-                                       shape: RoundedRectangleBorder(
-                                         borderRadius: BorderRadius.circular(12),
-                                       ),
-                                     ),
-                                     onPressed: () {
-                                       context.read<GameBloc>().add(
-                                             FetchGamesEvent(
-                                               forceRefresh: true,
-                                               searchQuery: state.activeQuery,
-                                             ),
-                                           );
-                                     },
-                                     icon: const Icon(Icons.refresh_rounded),
-                                     label: const Text('Try Again'),
-                                   ),
-                                 ],
-                               ),
-                             ),
-                           ),
-                         );
-                       }
-
-                       if (state is GameLoadedState) {
-                         if (state.games.isEmpty) {
-                           return Center(
-                             child: Padding(
-                               padding: const EdgeInsets.all(32.0),
-                               child: GlassContainer(
-                                 padding: const EdgeInsets.all(24),
-                                 borderRadius: 20,
-                                 child: Column(
-                                   mainAxisSize: MainAxisSize.min,
-                                   children: [
-                                     Icon(
-                                       Icons.search_off_rounded,
-                                       size: 48,
-                                       color: isDark ? Colors.white38 : Colors.black38,
-                                     ),
-                                     const SizedBox(height: 12),
-                                     Text(
-                                       state.activeQuery.isEmpty
-                                           ? 'No PS5 games found.'
-                                           : 'No PS5 games found for "${state.activeQuery}"',
-                                       textAlign: TextAlign.center,
-                                       style: TextStyle(
-                                         fontSize: 14,
-                                         fontWeight: FontWeight.w500,
-                                         color: isDark ? Colors.white70 : Colors.black87,
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                             ),
-                           );
-                         }
-
-                        final itemCount = state.games.length + (state.hasReachedMax ? 0 : 1);
-
-                        return RefreshIndicator(
-                          color: const Color(0xFF00E5FF),
-                          onRefresh: () async {
-                            context.read<GameBloc>().add(
-                                  FetchGamesEvent(
-                                    forceRefresh: true,
-                                    searchQuery: state.activeQuery,
-                                  ),
-                                );
-                          },
-                          child: ListView.builder(
-                            controller: _scrollController,
-                            physics: const BouncingScrollPhysics(),
-                            padding: const EdgeInsets.only(top: 4, bottom: 20),
-                            itemCount: itemCount,
-                            itemBuilder: (context, index) {
-                              // If reaching bottom loader slot
-                              if (index >= state.games.length) {
-                                return const GameCardSkeletonWidget();
-                              }
-
-                              final game = state.games[index];
-                              return GameCardWidget(
-                                key: ValueKey(game.id),
-                                game: game,
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    PageRouteBuilder<void>(
-                                      transitionDuration: const Duration(milliseconds: 400),
-                                      pageBuilder: (context, animation, secondaryAnimation) =>
-                                          GameDetailPage(
-                                        initialGame: game,
-                                        getGameDetailUseCase:
-                                            context.read<GetGameDetailUseCase>(),
-                                      ),
-                                      transitionsBuilder:
-                                          (context, animation, secondaryAnimation, child) {
-                                        return FadeTransition(
-                                          opacity: animation,
-                                          child: child,
-                                        );
-                                      },
-                                    ),
-                                  );
-                                },
-                              );
-                            },
+                            ),
                           ),
                         );
                       }
 
-                      return const SizedBox.shrink();
-                    },
-                  ),
+                      final itemCount = state.games.length + (state.hasReachedMax ? 0 : 1);
+
+                      return RefreshIndicator(
+                        color: const Color(0xFF00E5FF),
+                        onRefresh: () async {
+                          context.read<GameBloc>().add(
+                                FetchGamesEvent(
+                                  forceRefresh: true,
+                                  searchQuery: state.activeQuery,
+                                ),
+                              );
+                        },
+                        child: ListView.builder(
+                          controller: _scrollController,
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.only(top: 4, bottom: 20),
+                          itemCount: itemCount,
+                          itemBuilder: (context, index) {
+                            // If reaching bottom loader slot
+                            if (index >= state.games.length) {
+                              return const GameCardSkeletonWidget();
+                            }
+
+                            final game = state.games[index];
+                            return GameCardWidget(
+                              key: ValueKey(game.id),
+                              game: game,
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  PageRouteBuilder<void>(
+                                    transitionDuration: const Duration(milliseconds: 400),
+                                    pageBuilder: (context, animation, secondaryAnimation) =>
+                                        GameDetailPage(
+                                      initialGame: game,
+                                      getGameDetailUseCase:
+                                          context.read<GetGameDetailUseCase>(),
+                                    ),
+                                    transitionsBuilder:
+                                        (context, animation, secondaryAnimation, child) {
+                                      return FadeTransition(
+                                        opacity: animation,
+                                        child: child,
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    }
+
+                    return const SizedBox.shrink();
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
