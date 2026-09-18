@@ -29,28 +29,18 @@ class GameCardWidget extends StatelessWidget {
       metacriticColor = const Color(0xFFEF4444); // Red
     }
 
-    // Calculate moving alignment for card background if animation is supplied
-    Alignment cardBgAlignment = Alignment.center;
-    if (animation != null) {
-      final t = animation!.value; // 0.0 -> 1.0
-      cardBgAlignment = Alignment(-0.6 + (t * 1.2), -0.3 + (t * 0.6));
-    }
-
     return RepaintBoundary(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
         child: GlassContainer(
           borderRadius: 22,
           blur: 16,
-          opacity: isDark ? 0.06 : 0.65,
+          opacity: isDark ? 0.08 : 0.70,
           onTap: onTap,
           padding: const EdgeInsets.all(12.0),
-          backgroundImage: const AssetImage('assets/images/cyberpunk_bg.jpg'),
-          imageOpacity: isDark ? 0.28 : 0.18,
-          imageAlignment: cardBgAlignment,
           border: Border.all(
             color: isDark
-                ? Colors.white.withOpacity(0.15)
+                ? Colors.white.withOpacity(0.12)
                 : Colors.white.withOpacity(0.85),
             width: 1.2,
           ),
