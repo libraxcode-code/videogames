@@ -59,11 +59,12 @@ class WaterFlowBackgroundState extends State<WaterFlowBackground>
     });
   }
 
-  /// Update fluid flow displacement when page scrolls
+  /// Update fluid flow displacement when page scrolls with bounded harmonic cycle
   void onScrollOffsetUpdate(double scrollOffset) {
     if (!mounted) return;
     setState(() {
-      _scrollDisplacement = scrollOffset;
+      // Loop displacement within -45.0 to +45.0 px so background fluid stays on screen indefinitely
+      _scrollDisplacement = (scrollOffset % 360.0) / 360.0 * 90.0 - 45.0;
     });
   }
 
