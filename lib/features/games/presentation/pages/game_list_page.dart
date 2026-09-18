@@ -74,18 +74,12 @@ class _GameListPageState extends State<GameListPage> {
                   end: Alignment.bottomCenter,
                   colors: [
                     (isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9))
-                        .withOpacity(isDark ? 0.88 : 0.82),
+                        .withOpacity(isDark ? 0.85 : 0.80),
                     (isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9))
-                        .withOpacity(isDark ? 0.94 : 0.89),
+                        .withOpacity(isDark ? 0.96 : 0.92),
                   ],
                 ),
               ),
-            ),
-          ),
-          Positioned.fill(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-              child: const SizedBox.expand(),
             ),
           ),
 

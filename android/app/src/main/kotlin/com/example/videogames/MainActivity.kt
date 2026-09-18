@@ -8,10 +8,16 @@ import io.flutter.embedding.android.FlutterActivity
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableHighRefreshRate()
+    }
 
-        // Request 120 Hz / Highest display refresh rate mode
+    override fun onResume() {
+        super.onResume()
+        enableHighRefreshRate()
+    }
+
+    private fun enableHighRefreshRate() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val window = window
             val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 display
             } else {
@@ -20,19 +26,28 @@ class MainActivity : FlutterActivity() {
             }
 
             display?.supportedModes?.let { modes ->
-                var maxRefreshRate = 60.0f
-                var targetModeId = 0
+                var maxRate = 60.0f
+                var targetId = 0
                 for (mode in modes) {
-                    if (mode.refreshRate > maxRefreshRate) {
-                        maxRefreshRate = mode.refreshRate
-                        targetModeId = mode.modeId
+                    if (mode.refreshRate > maxRate) {
+                        maxRate = mode.refreshRate
+                        targetId = mode.modeId
                     }
                 }
-                if (targetModeId != 0) {
-                    val params = window.attributes
-                    params.preferredDisplayModeId = targetModeId
-                    window.attributes = params
+
+                val window = window
+                val layoutParams = window.attributes
+                if (targetId != 0) {
+                    layoutParams.preferredDisplayModeId = targetId
                 }
+
+                // Android 11+ explicit frame rate request
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    layoutParams.preferredMinDisplayRefreshRate = maxRate
+                    layoutParams.preferredMaxDisplayRefreshRate = maxRate
+                }
+
+                window.attributes = layoutParams
             }
         }
     }
