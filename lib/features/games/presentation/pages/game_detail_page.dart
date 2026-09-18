@@ -4,7 +4,7 @@ import '../../domain/usecases/get_game_detail_usecase.dart';
 import '../widgets/game_detail_app_bar.dart';
 import '../widgets/game_detail_content.dart';
 import '../widgets/game_stats_row.dart';
-import '../widgets/living_cyber_background.dart';
+import '../widgets/water_flow_background.dart';
 
 class GameDetailPage extends StatefulWidget {
   final GameEntity initialGame;
@@ -20,39 +20,29 @@ class GameDetailPage extends StatefulWidget {
   State<GameDetailPage> createState() => _GameDetailPageState();
 }
 
-class _GameDetailPageState extends State<GameDetailPage>
-    with SingleTickerProviderStateMixin {
+class _GameDetailPageState extends State<GameDetailPage> {
   late GameEntity _game;
   bool _isLoading = true;
   String? _errorMessage;
-  late AnimationController _motionController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _driftAnimation;
+  final ScrollController _scrollController = ScrollController();
+  final GlobalKey<WaterFlowBackgroundState> _waterBgKey = GlobalKey<WaterFlowBackgroundState>();
 
   @override
   void initState() {
     super.initState();
     _game = widget.initialGame;
     _fetchDetail();
+    _scrollController.addListener(_onScroll);
+  }
 
-    // 120 FPS high-refresh atmospheric motion controller
-    _motionController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.75, end: 1.25).animate(
-      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutQuad),
-    );
-
-    _driftAnimation = Tween<double>(begin: -30.0, end: 30.0).animate(
-      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutQuad),
-    );
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    _waterBgKey.currentState?.onScrollOffsetUpdate(_scrollController.offset);
   }
 
   @override
   void dispose() {
-    _motionController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -74,18 +64,19 @@ class _GameDetailPageState extends State<GameDetailPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF060910),
+      backgroundColor: const Color(0xFF030712),
       body: Stack(
         children: [
-          // 1. Moving Cyberpunk Living Background & Grid
-          LivingCyberBackground(
-            motionController: _motionController,
-            pulseAnimation: _pulseAnimation,
-            driftAnimation: _driftAnimation,
+          // 1. Calming Water Flow Background with Touch & Scroll Ripples
+          Positioned.fill(
+            child: WaterFlowBackground(
+              key: _waterBgKey,
+            ),
           ),
 
           // 2. Main Scrollable Content
           CustomScrollView(
+            controller: _scrollController,
             physics: const BouncingScrollPhysics(),
             slivers: [
               // Hero Banner & App Bar
