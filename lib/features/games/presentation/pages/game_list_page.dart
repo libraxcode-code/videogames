@@ -1,8 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/glass_search_bar.dart';
+import '../../../../core/widgets/glass_skeleton_loading.dart';
 import '../../domain/usecases/get_game_detail_usecase.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
@@ -53,44 +55,76 @@ class _GameListPageState extends State<GameListPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF090D16) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark ? const Color(0xFF070A11) : const Color(0xFFF1F5F9),
       body: Stack(
         children: [
-          // Cyberpunk Background Ambient Mesh Glows
+          // 1. Ultra Modern Cyberpunk Deep Dark Background Mesh Gradients
           Positioned(
-            top: -60,
-            right: -60,
+            top: -100,
+            right: -80,
             child: Container(
-              width: 260,
-              height: 260,
+              width: 380,
+              height: 380,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF00E5FF).withOpacity(isDark ? 0.20 : 0.12),
+                    const Color(0xFF00E5FF).withOpacity(isDark ? 0.22 : 0.14),
+                    const Color(0xFF0070D1).withOpacity(isDark ? 0.12 : 0.08),
                     Colors.transparent,
                   ],
+                  stops: const [0.0, 0.5, 1.0],
                 ),
               ),
             ),
           ),
           Positioned(
-            top: 260,
-            left: -80,
+            top: 240,
+            left: -120,
             child: Container(
-              width: 280,
-              height: 280,
+              width: 400,
+              height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
                     const Color(0xFF7C4DFF).withOpacity(isDark ? 0.18 : 0.10),
+                    const Color(0xFFD500F9).withOpacity(isDark ? 0.08 : 0.04),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.5, 1.0],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -80,
+            right: -60,
+            child: Container(
+              width: 320,
+              height: 320,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    const Color(0xFF00E5FF).withOpacity(isDark ? 0.14 : 0.08),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
+
+          // Cyber subtle grid overlay
+          if (isDark)
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.15,
+                child: CustomPaint(
+                  painter: _CyberGridPainter(),
+                ),
+              ),
+            ),
 
           SafeArea(
             child: Column(
@@ -199,31 +233,17 @@ class _GameListPageState extends State<GameListPage> {
 
                 const SizedBox(height: 6),
 
-                // Body List Content with 120 FPS ListView.builder + Pagination
+                // Body List Content with Skeleton Loading
                 Expanded(
                   child: BlocBuilder<GameBloc, GameState>(
                     builder: (context, state) {
+                      // Skeleton Loading View
                       if (state is GameLoadingState) {
-                        return Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const CircularProgressIndicator(
-                                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
-                              ),
-                              const SizedBox(height: 14),
-                              Text(
-                                state.isSearching
-                                    ? 'Mencari di database RAWG...'
-                                    : 'Memuat game PS5 terbaru...',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white70 : Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
+                        return ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(top: 4, bottom: 20),
+                          itemCount: 6,
+                          itemBuilder: (context, index) => const GameCardSkeletonWidget(),
                         );
                       }
 
@@ -331,33 +351,7 @@ class _GameListPageState extends State<GameListPage> {
                             itemBuilder: (context, index) {
                               // If reaching bottom loader slot
                               if (index >= state.games.length) {
-                                return Center(
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 20),
-                                    child: GlassContainer(
-                                      borderRadius: 14,
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                                      child: const Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2.2,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00E5FF)),
-                                            ),
-                                          ),
-                                          SizedBox(width: 10),
-                                          Text(
-                                            'Memuat game berikutnya...',
-                                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
+                                return const GameCardSkeletonWidget();
                               }
 
                               final game = state.games[index];
@@ -401,4 +395,24 @@ class _GameListPageState extends State<GameListPage> {
       ),
     );
   }
+}
+
+class _CyberGridPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = const Color(0xFF00E5FF).withOpacity(0.08)
+      ..strokeWidth = 0.5;
+
+    const step = 42.0;
+    for (double x = 0; x < size.width; x += step) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+    }
+    for (double y = 0; y < size.height; y += step) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
