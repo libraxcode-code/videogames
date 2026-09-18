@@ -1,15 +1,15 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/glass_container.dart';
 import '../../../../core/widgets/glass_search_bar.dart';
 import '../../../../core/widgets/glass_skeleton_loading.dart';
+import '../../domain/entities/game_entity.dart';
 import '../../domain/usecases/get_game_detail_usecase.dart';
 import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
-import '../widgets/game_card_widget.dart';
+import '../widgets/game_list_empty_error_views.dart';
+import '../widgets/game_list_header.dart';
+import '../widgets/game_list_view.dart';
 import '../widgets/water_flow_background.dart';
 import 'game_detail_page.dart';
 
@@ -37,7 +37,7 @@ class _GameListPageState extends State<GameListPage> {
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
 
-    // Reactively trigger subtle water flow motion on scroll
+    // Reactively trigger water flow motion on scroll
     _waterBgKey.currentState?.onScrollOffsetUpdate(currentScroll);
 
     // Trigger infinite scroll pagination 250px before bottom
@@ -56,10 +56,26 @@ class _GameListPageState extends State<GameListPage> {
     super.dispose();
   }
 
+  void _navigateToDetail(GameEntity game) {
+    Navigator.of(context).push(
+      PageRouteBuilder<void>(
+        transitionDuration: const Duration(milliseconds: 400),
+        pageBuilder: (context, animation, secondaryAnimation) => GameDetailPage(
+          initialGame: game,
+          getGameDetailUseCase: context.read<GetGameDetailUseCase>(),
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
       body: WaterFlowBackground(
@@ -68,94 +84,19 @@ class _GameListPageState extends State<GameListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Header with Glass Container
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                child: GlassContainer(
-                  borderRadius: 22,
-                  blur: 18,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(9),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF003791), Color(0xFF00E5FF)],
-                          ),
+              // 1. Header with branding & refresh
+              GameListHeader(
+                onRefresh: () {
+                  context.read<GameBloc>().add(
+                        FetchGamesEvent(
+                          forceRefresh: true,
+                          searchQuery: _searchController.text.trim(),
                         ),
-                        child: const Icon(
-                          Icons.sports_esports_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(
-                                  'PLAYSTATION 5',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.2,
-                                    color: isDark ? Colors.white : AppColors.textPrimaryLight,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withOpacity(0.18),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    'LIVE API',
-                                    style: TextStyle(
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w900,
-                                      color: Color(0xFF10B981),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'Latest Released PS5 Vault • SSL Pinned',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: isDark
-                                    ? Colors.white.withOpacity(0.70)
-                                    : AppColors.textSecondaryLight,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.refresh_rounded),
-                        tooltip: 'Refresh Data',
-                        onPressed: () {
-                          context.read<GameBloc>().add(
-                                FetchGamesEvent(
-                                  forceRefresh: true,
-                                  searchQuery: _searchController.text.trim(),
-                                ),
-                              );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
+                      );
+                },
               ),
 
-              // Glass Search Bar connected to BLoC
+              // 2. Search Bar connected to BLoC
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: GlassSearchBar(
@@ -172,11 +113,10 @@ class _GameListPageState extends State<GameListPage> {
 
               const SizedBox(height: 6),
 
-              // Body List Content with Skeleton Loading
+              // 3. Main Content with BLoC state management
               Expanded(
                 child: BlocBuilder<GameBloc, GameState>(
                   builder: (context, state) {
-                    // Skeleton Loading View
                     if (state is GameLoadingState) {
                       return ListView.builder(
                         physics: const NeverScrollableScrollPhysics(),
@@ -187,93 +127,28 @@ class _GameListPageState extends State<GameListPage> {
                     }
 
                     if (state is GameErrorState) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24.0),
-                          child: GlassContainer(
-                            padding: const EdgeInsets.all(24.0),
-                            borderRadius: 24,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.error_outline_rounded,
-                                  color: AppColors.error,
-                                  size: 48,
+                      return GameListErrorView(
+                        message: state.message,
+                        onRetry: () {
+                          context.read<GameBloc>().add(
+                                FetchGamesEvent(
+                                  forceRefresh: true,
+                                  searchQuery: state.activeQuery,
                                 ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  state.message,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                                const SizedBox(height: 16),
-                                ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF6366F1),
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    context.read<GameBloc>().add(
-                                          FetchGamesEvent(
-                                            forceRefresh: true,
-                                            searchQuery: state.activeQuery,
-                                          ),
-                                        );
-                                  },
-                                  icon: const Icon(Icons.refresh_rounded),
-                                  label: const Text('Try Again'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                              );
+                        },
                       );
                     }
 
                     if (state is GameLoadedState) {
                       if (state.games.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32.0),
-                            child: GlassContainer(
-                              padding: const EdgeInsets.all(24),
-                              borderRadius: 20,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.search_off_rounded,
-                                    size: 48,
-                                    color: isDark ? Colors.white38 : Colors.black38,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    state.activeQuery.isEmpty
-                                        ? 'No PS5 games found.'
-                                        : 'No PS5 games found for "${state.activeQuery}"',
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: isDark ? Colors.white70 : Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
+                        return GameListEmptyView(activeQuery: state.activeQuery);
                       }
 
-                      final itemCount = state.games.length + (state.hasReachedMax ? 0 : 1);
-
-                      return RefreshIndicator(
-                        color: const Color(0xFF00E5FF),
+                      return GameListView(
+                        games: state.games,
+                        hasReachedMax: state.hasReachedMax,
+                        scrollController: _scrollController,
                         onRefresh: () async {
                           context.read<GameBloc>().add(
                                 FetchGamesEvent(
@@ -282,44 +157,7 @@ class _GameListPageState extends State<GameListPage> {
                                 ),
                               );
                         },
-                        child: ListView.builder(
-                          controller: _scrollController,
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.only(top: 4, bottom: 20),
-                          itemCount: itemCount,
-                          itemBuilder: (context, index) {
-                            // If reaching bottom loader slot
-                            if (index >= state.games.length) {
-                              return const GameCardSkeletonWidget();
-                            }
-
-                            final game = state.games[index];
-                            return GameCardWidget(
-                              key: ValueKey(game.id),
-                              game: game,
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  PageRouteBuilder<void>(
-                                    transitionDuration: const Duration(milliseconds: 400),
-                                    pageBuilder: (context, animation, secondaryAnimation) =>
-                                        GameDetailPage(
-                                      initialGame: game,
-                                      getGameDetailUseCase:
-                                          context.read<GetGameDetailUseCase>(),
-                                    ),
-                                    transitionsBuilder:
-                                        (context, animation, secondaryAnimation, child) {
-                                      return FadeTransition(
-                                        opacity: animation,
-                                        child: child,
-                                      );
-                                    },
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                        onGameTap: _navigateToDetail,
                       );
                     }
 
