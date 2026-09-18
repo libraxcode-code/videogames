@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/glass_container.dart';
 import '../../../domain/entities/game_entity.dart';
+import 'game_trailer_player.dart';
 
-/// Game detail content sections: Genres, Description, and Credits/Publishers.
+/// Game detail content sections: Genres, Official Trailer, Description, and Credits/Publishers.
 class GameDetailContent extends StatelessWidget {
   final GameEntity game;
 
@@ -46,6 +47,15 @@ class GameDetailContent extends StatelessWidget {
           }).toList(),
         ),
         const SizedBox(height: 22),
+
+        // 2. On-Demand Official Trailer Player (if available)
+        if (game.trailerUrl != null && game.trailerUrl!.isNotEmpty) ...[
+          GameTrailerPlayer(
+            trailerUrl: game.trailerUrl!,
+            trailerPreview: game.trailerPreview,
+          ),
+          const SizedBox(height: 22),
+        ],
 
         // 2. Description
         const Text(
