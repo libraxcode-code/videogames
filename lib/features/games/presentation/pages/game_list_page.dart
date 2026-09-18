@@ -10,6 +10,7 @@ import '../bloc/game_bloc.dart';
 import '../bloc/game_event.dart';
 import '../bloc/game_state.dart';
 import '../widgets/game_card_widget.dart';
+import '../widgets/water_flow_background.dart';
 import 'game_detail_page.dart';
 
 class GameListPage extends StatefulWidget {
@@ -19,40 +20,26 @@ class GameListPage extends StatefulWidget {
   State<GameListPage> createState() => _GameListPageState();
 }
 
-class _GameListPageState extends State<GameListPage>
-    with SingleTickerProviderStateMixin {
+class _GameListPageState extends State<GameListPage> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
-
-  late final AnimationController _motionController;
-  late final Animation<double> _pulseAnimation;
-  late final Animation<double> _driftAnimation;
+  final GlobalKey<WaterFlowBackgroundState> _waterBgKey = GlobalKey<WaterFlowBackgroundState>();
 
   @override
   void initState() {
     super.initState();
     context.read<GameBloc>().add(const FetchGamesEvent());
     _scrollController.addListener(_onScroll);
-
-    // 120 FPS high-refresh atmospheric motion controller with vivid, distinct movement
-    _motionController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4),
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 0.70, end: 1.30).animate(
-      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutQuad),
-    );
-
-    _driftAnimation = Tween<double>(begin: -35.0, end: 35.0).animate(
-      CurvedAnimation(parent: _motionController, curve: Curves.easeInOutQuad),
-    );
   }
 
   void _onScroll() {
     if (!_scrollController.hasClients) return;
     final maxScroll = _scrollController.position.maxScrollExtent;
     final currentScroll = _scrollController.offset;
+
+    // Reactively trigger subtle water flow motion on scroll
+    _waterBgKey.currentState?.onScrollOffsetUpdate(currentScroll);
+
     // Trigger infinite scroll pagination 250px before bottom
     if (currentScroll >= (maxScroll - 250)) {
       final state = context.read<GameBloc>().state;
@@ -64,7 +51,6 @@ class _GameListPageState extends State<GameListPage>
 
   @override
   void dispose() {
-    _motionController.dispose();
     _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -75,193 +61,17 @@ class _GameListPageState extends State<GameListPage>
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF060910),
+      backgroundColor: const Color(0xFF030712),
       body: Stack(
         children: [
-          // 1. High-Contrast Vivid Cyberpunk Gaming Wallpaper with 120 FPS Cinematic Pan & Zoom
+          // 1. Calming Water Flow Background with Touch & Scroll Ripples
           Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _motionController,
-              builder: (context, child) {
-                // Dynamic motion with vivid travel distance & zoom
-                final zoom = 1.10 + (0.12 * _pulseAnimation.value);
-                final panX = _driftAnimation.value * 1.4;
-                final panY = _driftAnimation.value * 0.8;
-
-                return Transform.translate(
-                  offset: Offset(panX, panY),
-                  child: Transform.scale(
-                    scale: zoom,
-                    child: Image.asset(
-                      'assets/images/cyberpunk_bg.jpg',
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                );
-              },
+            child: WaterFlowBackground(
+              key: _waterBgKey,
             ),
           ),
 
-          // 2. Translucent Cyberpunk Overlay - jelas, tajam, dan tidak menutupi gerakan gambar
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.20),
-                    const Color(0xFF060910).withOpacity(0.48),
-                    const Color(0xFF060910).withOpacity(0.80),
-                  ],
-                  stops: const [0.0, 0.45, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // 3. Living 120 FPS Floating Cyberpunk Plasma Orbs (Bergerak Halus)
-          AnimatedBuilder(
-            animation: _motionController,
-            builder: (context, child) {
-              final pulse = _pulseAnimation.value;
-              final drift = _driftAnimation.value;
-
-              return Stack(
-                children: [
-                  // Cyan Neon Pulse Orb (Kanan Atas)
-                  Positioned(
-                    top: -40 + drift,
-                    right: -40 - drift,
-                    child: Transform.scale(
-                      scale: pulse,
-                      child: Container(
-                        width: 320,
-                        height: 320,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              const Color(0xFF00E5FF).withOpacity(0.35),
-                              const Color(0xFF0070D1).withOpacity(0.18),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.45, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Electric Purple Neon Drift Orb (Kiri Tengah)
-                  Positioned(
-                    top: 240 - drift,
-                    left: -70 + drift,
-                    child: Transform.scale(
-                      scale: 2.0 - pulse,
-                      child: Container(
-                        width: 340,
-                        height: 340,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: RadialGradient(
-                            colors: [
-                              const Color(0xFF7C4DFF).withOpacity(0.30),
-                              const Color(0xFFD500F9).withOpacity(0.14),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.45, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Emerald Accent Orb (Kanan Bawah)
-                  Positioned(
-                    bottom: 40 + drift,
-                    right: -50,
-                    child: Container(
-                      width: 260,
-                      height: 260,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: RadialGradient(
-                          colors: [
-                            const Color(0xFF10B981).withOpacity(0.18),
-                            Colors.transparent,
-                          ],
-                          stops: const [0.0, 0.6],
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-
-          // 4. Moving Dynamic Cyber Grid & Animated Sweeping Cyber Beam
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _motionController,
-              builder: (context, child) {
-                final drift = _driftAnimation.value;
-                final sweepProgress = _motionController.value;
-
-                return Stack(
-                  children: [
-                    // Moving Digital Grid
-                    Positioned.fill(
-                      child: Opacity(
-                        opacity: 0.28,
-                        child: CustomPaint(
-                          painter: _CyberGridPainter(offsetX: drift * 0.8, offsetY: drift * 0.5),
-                        ),
-                      ),
-                    ),
-
-                    // Continuous Vivid Neon Sweeping Laser Beam
-                    Positioned(
-                      top: sweepProgress * MediaQuery.of(context).size.height,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 2.5,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.transparent,
-                              const Color(0xFF00E5FF).withOpacity(0.1),
-                              const Color(0xFF00E5FF).withOpacity(0.85),
-                              const Color(0xFFD500F9).withOpacity(0.85),
-                              const Color(0xFF00E5FF).withOpacity(0.1),
-                              Colors.transparent,
-                            ],
-                            stops: const [0.0, 0.2, 0.45, 0.55, 0.8, 1.0],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF00E5FF).withOpacity(0.6),
-                              blurRadius: 16,
-                              spreadRadius: 2,
-                            ),
-                            BoxShadow(
-                              color: const Color(0xFFD500F9).withOpacity(0.4),
-                              blurRadius: 28,
-                              spreadRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
-
-          // 5. Main Content Layer
+          // 2. Main Content Layer
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -531,33 +341,4 @@ class _GameListPageState extends State<GameListPage>
       ),
     );
   }
-}
-
-class _CyberGridPainter extends CustomPainter {
-  final double offsetX;
-  final double offsetY;
-
-  const _CyberGridPainter({this.offsetX = 0.0, this.offsetY = 0.0});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF00E5FF).withOpacity(0.14)
-      ..strokeWidth = 0.6;
-
-    const step = 44.0;
-    final startX = (offsetX % step) - step;
-    final startY = (offsetY % step) - step;
-
-    for (double x = startX; x < size.width + step; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = startY; y < size.height + step; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _CyberGridPainter oldDelegate) =>
-      oldDelegate.offsetX != offsetX || oldDelegate.offsetY != offsetY;
 }
