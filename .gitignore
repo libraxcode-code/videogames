@@ -19,6 +19,13 @@ migrate_working_dir/
 # Visual Studio Code
 .vscode/
 
+# Eclipse / Buildship related
+.settings/
+.project
+.classpath
+**/android/.settings/
+
+
 # Flutter/Dart/Pub related
 **/doc/api/
 .dart_tool/
