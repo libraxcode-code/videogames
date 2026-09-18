@@ -69,7 +69,7 @@ class GameStatsRow extends StatelessWidget {
                         height: 1.1,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 4),
                     const Text(
                       'METASCORE',
                       style: TextStyle(
@@ -93,7 +93,7 @@ class GameStatsRow extends StatelessWidget {
             height: 76,
             child: GlassContainer(
               borderRadius: 16,
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -102,9 +102,9 @@ class GameStatsRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(Icons.star_rounded, color: AppColors.warning, size: 20),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 3),
                       Text(
-                        '${game.rating}',
+                        game.rating > 0 ? game.rating.toStringAsFixed(1) : 'N/A',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
@@ -112,11 +112,23 @@ class GameStatsRow extends StatelessWidget {
                           height: 1.1,
                         ),
                       ),
+                      if (game.rating > 0)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4, left: 1),
+                          child: Text(
+                            '/5',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white60,
+                            ),
+                          ),
+                        ),
                     ],
                   ),
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 4),
                   const Text(
-                    'RAWG RATING',
+                    'RATING',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -146,11 +158,11 @@ class GameStatsRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 14,
+                        Icons.calendar_month_rounded,
+                        size: 16,
                         color: Color(0xFF00E5FF),
                       ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           _formatReleaseDate(game.releaseDate),
@@ -167,7 +179,7 @@ class GameStatsRow extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 4),
                   const Text(
                     'RELEASE DATE',
                     style: TextStyle(

@@ -66,10 +66,22 @@ class GlassContainer extends StatelessWidget {
                 ],
         );
 
-    Widget innerBox = Stack(
-      children: [
-        // Background Image / Animated GIF texture if provided
-        if (backgroundImage != null)
+    Widget glassContent = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color,
+        gradient: color == null ? defaultGradient : null,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: defaultBorder,
+      ),
+      child: child,
+    );
+
+    Widget innerBox;
+    if (backgroundImage != null) {
+      innerBox = Stack(
+        fit: StackFit.passthrough,
+        children: [
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(borderRadius),
@@ -83,29 +95,12 @@ class GlassContainer extends StatelessWidget {
               ),
             ),
           ),
-
-        // Translucent Glass Gradient Tint
-        Positioned.fill(
-          child: Container(
-            decoration: BoxDecoration(
-              color: color,
-              gradient: color == null ? defaultGradient : null,
-              borderRadius: BorderRadius.circular(borderRadius),
-            ),
-          ),
-        ),
-
-        // Foreground Content with Padding
-        Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(borderRadius),
-            border: defaultBorder,
-          ),
-          child: child,
-        ),
-      ],
-    );
+          glassContent,
+        ],
+      );
+    } else {
+      innerBox = glassContent;
+    }
 
     Widget content = Container(
       margin: margin,
