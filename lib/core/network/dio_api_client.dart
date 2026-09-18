@@ -105,7 +105,7 @@ class DioApiClient {
         throw const NetworkException(message: 'Connection timeout with RAWG API');
       } else if (e.type == DioExceptionType.connectionError) {
         throw const NetworkException(
-          message: 'Koneksi internet bermasalah atau server tidak dapat dijangkau',
+          message: 'Network issue or server is unreachable. Please check your internet connection.',
         );
       } else if (e.response != null) {
         throw ServerException(

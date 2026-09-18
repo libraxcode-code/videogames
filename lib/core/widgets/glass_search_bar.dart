@@ -15,7 +15,7 @@ class GlassSearchBar extends StatefulWidget {
     this.controller,
     this.onChanged,
     this.onClear,
-    this.hintText = 'Cari game favoritmu...',
+    this.hintText = 'Search favorite games...',
     this.focusNode,
   });
 

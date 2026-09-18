@@ -3,7 +3,7 @@ class ServerException implements Exception {
   final int? statusCode;
 
   const ServerException({
-    this.message = 'Terjadi kesalahan pada respon server',
+    this.message = 'An error occurred with the server response',
     this.statusCode,
   });
 
@@ -15,7 +15,7 @@ class NetworkException implements Exception {
   final String message;
 
   const NetworkException({
-    this.message = 'Koneksi jaringan terputus',
+    this.message = 'Network connection disconnected',
   });
 
   @override
@@ -26,7 +26,7 @@ class CacheException implements Exception {
   final String message;
 
   const CacheException({
-    this.message = 'Gagal mengakses penyimpanan lokal',
+    this.message = 'Failed to access local storage',
   });
 
   @override
