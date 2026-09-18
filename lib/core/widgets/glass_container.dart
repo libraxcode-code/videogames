@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
-/// Reusable Glassmorphism Container with customizable blur, opacity, border, and gradient.
+/// High performance Glassmorphism Container.
+/// Supports enabling/disabling BackdropFilter blur for 120 FPS high refresh scrolling.
 class GlassContainer extends StatelessWidget {
   final Widget child;
   final double blur;
@@ -14,11 +15,12 @@ class GlassContainer extends StatelessWidget {
   final Color? color;
   final List<BoxShadow>? shadows;
   final VoidCallback? onTap;
+  final bool enableBlur;
 
   const GlassContainer({
     super.key,
     required this.child,
-    this.blur = 16.0,
+    this.blur = 12.0,
     this.opacity = 0.12,
     this.borderRadius = 20.0,
     this.padding,
@@ -28,6 +30,7 @@ class GlassContainer extends StatelessWidget {
     this.color,
     this.shadows,
     this.onTap,
+    this.enableBlur = false, // false by default for 120 FPS buttery smooth scrolling
   });
 
   @override
@@ -48,14 +51,25 @@ class GlassContainer extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: isDark
               ? [
-                  Colors.white.withOpacity(opacity * 1.5),
-                  Colors.white.withOpacity(opacity * 0.4),
+                  Colors.white.withOpacity(opacity * 1.6),
+                  Colors.white.withOpacity(opacity * 0.5),
                 ]
               : [
                   Colors.white.withOpacity(0.85),
-                  Colors.white.withOpacity(0.45),
+                  Colors.white.withOpacity(0.50),
                 ],
         );
+
+    Widget innerBox = Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color,
+        gradient: color == null ? defaultGradient : null,
+        borderRadius: BorderRadius.circular(borderRadius),
+        border: defaultBorder,
+      ),
+      child: child,
+    );
 
     Widget content = Container(
       margin: margin,
@@ -67,26 +81,19 @@ class GlassContainer extends StatelessWidget {
                 color: isDark
                     ? Colors.black.withOpacity(0.35)
                     : const Color(0xFF6366F1).withOpacity(0.08),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
             ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: color,
-              gradient: color == null ? defaultGradient : null,
-              borderRadius: BorderRadius.circular(borderRadius),
-              border: defaultBorder,
-            ),
-            child: child,
-          ),
-        ),
+        child: enableBlur
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                child: innerBox,
+              )
+            : innerBox,
       ),
     );
 
