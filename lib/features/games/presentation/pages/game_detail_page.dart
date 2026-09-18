@@ -65,43 +65,34 @@ class _GameDetailPageState extends State<GameDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF030712),
-      body: Stack(
-        children: [
-          // 1. Calming Water Flow Background with Touch & Scroll Ripples
-          Positioned.fill(
-            child: WaterFlowBackground(
-              key: _waterBgKey,
-            ),
-          ),
+      body: WaterFlowBackground(
+        key: _waterBgKey,
+        child: CustomScrollView(
+          controller: _scrollController,
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Hero Banner & App Bar
+            GameDetailAppBar(game: _game),
 
-          // 2. Main Scrollable Content
-          CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              // Hero Banner & App Bar
-              GameDetailAppBar(game: _game),
+            // Body Details
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Quick Stats (Metacritic, Rating, Release Date)
+                    GameStatsRow(game: _game),
+                    const SizedBox(height: 18),
 
-              // Body Details
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Quick Stats (Metacritic, Rating, Release Date)
-                      GameStatsRow(game: _game),
-                      const SizedBox(height: 18),
-
-                      // Game Content (Genres, Description, Publishers/Credits)
-                      GameDetailContent(game: _game),
-                    ],
-                  ),
+                    // Game Content (Genres, Description, Publishers/Credits)
+                    GameDetailContent(game: _game),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
