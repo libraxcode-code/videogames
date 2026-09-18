@@ -1,6 +1,6 @@
-﻿# Test Fazz Flutter Games library
+# Test Fazz Flutter Games library
 
-Proyek Flutter yang dibangun dengan arsitektur **Clean Architecture (Lite)**, state management **BLoC**, in-memory caching untuk menghemat bandwidth, serta dioptimalkan untuk performa scrolling **120 FPS**.
+ 
 
 ---
 
@@ -22,16 +22,16 @@ lib/
 │       │   ├── entities/
 │       │   ├── repositories/
 │       │   └── usecases/
-│       ├── data/                         # Layer Data, Caching & Integrasi API
+│       ├── data/                         # Layer Data & Integrasi API
 │       │   ├── models/
-│       │   ├── datasources/              # Remote & Local Cache Data Source
+│       │   ├── datasources/
 │       │   └── repositories/
-│       └── presentation/                 # Layer UI & BLoC
-│           ├── bloc/                     # GameBloc, GameEvent, GameState
+│       └── presentation/                 # Layer UI & State
+│           ├── controllers/
 │           ├── pages/
 │           └── widgets/
 │
-├── injection_container.dart              # MultiRepositoryProvider & BlocProvider
+├── injection_container.dart              # Dependency Injection
 ├── app.dart                              # Konfigurasi MaterialApp
 └── main.dart                             # Entry point aplikasi
 ```
@@ -40,48 +40,45 @@ lib/
 
 ## Bagaimana Aplikasi Ini Berjalan (Application Flow)
 
-Aplikasi ini menggunakan aliran data terarah dengan **BLoC Pattern** dan **Caching Strategy**:
+Aplikasi ini menggunakan aliran data satu arah (**Unidirectional Data Flow**) dengan batasan dependensi yang jelas antar-layer (Clean Architecture):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ 1. INITIALIZATION & INJECTION                              │
-│    main.dart -> InjectionContainer -> app.dart              │
+│    main.dart -> injection_container.dart -> app.dart        │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ 2. PRESENTATION LAYER (UI)                                  │
-│    GameListPage mengirim FetchGamesEvent ke GameBloc        │
-│    GameBloc memancarkan: GameLoadingState                   │
+│    GameListPage meminta data melalui GameController         │
+│    Controller mengubah status ke: GameStateStatus.loading   │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼ memanggil
 ┌─────────────────────────────────────────────────────────────┐
 │ 3. DOMAIN LAYER (Business Logic)                            │
-│    GetGamesUseCase(GetGamesParams(forceRefresh: ...))       │
+│    GetGamesUseCase(NoParams()) dieksekusi                   │
 │    Meneruskan permintaan ke GameRepository (Interface)      │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼ diimplementasikan oleh
 ┌─────────────────────────────────────────────────────────────┐
-│ 4. DATA LAYER (Bandwidth-Saving Caching)                    │
-│    GameRepositoryImpl memeriksa:                            │
-│    - Jika forceRefresh == false & cache ada:                │
-│        Langsung kembalikan Right(cachedGames) (Hemat kuota) │
-│    - Jika cache kosong / forceRefresh == true:              │
-│        Fetch via GameRemoteDataSource -> Simpan ke Cache    │
-│    - Jika network offline tapi cache ada:                   │
-│        Fallback mengembalikan data cache lokal              │
+│ 4. DATA LAYER (Data Fetching & Mapping)                     │
+│    GameRepositoryImpl memanggil GameRemoteDataSource        │
+│    DataSource mengambil data via ApiClient / REST Endpoint   │
+│    JSON mentah diparsing menjadi GameModel                  │
+│    Repository menangkap Exception dan mengubahnya menjadi   │
+│    Either<Failure, List<GameEntity>>                        │
 └──────────────────────────────┬──────────────────────────────┘
                                │
                                ▼ mengembalikan data
 ┌─────────────────────────────────────────────────────────────┐
-│ 5. STATE & UI UPDATE (120 FPS Optimized)                    │
-│    GameBloc menerima hasil Either:                          │
-│    - Right(games) -> emit(GameLoadedState(games: games))    │
-│    - Left(failure) -> emit(GameErrorState(failure.message)) │
-│    BlocBuilder me-render ListView dengan RepaintBoundary &  │
-│    itemExtent tetap untuk menjamin scrolling mulus 120 FPS. │
+│ 5. STATE & UI UPDATE                                        │
+│    GameController menerima Either:                          │
+│    - Right(data) -> status = loaded, notifyListeners()      │
+│    - Left(failure) -> status = error, notifyListeners()     │
+│    GameListPage me-render GameCardWidget sesuai status      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -89,44 +86,93 @@ Aplikasi ini menggunakan aliran data terarah dengan **BLoC Pattern** dan **Cachi
 
 1. **Bootstrapping & Dependency Injection** (`lib/main.dart` & `lib/injection_container.dart`):
    - Aplikasi dimulai dari `main()`.
-   - `InjectionContainer` menggunakan `MultiRepositoryProvider` untuk mendaftarkan `ApiClient`, `GameLocalDataSource`, `GameRemoteDataSource`, `GameRepository`, `GetGamesUseCase`, dan membungkus tree dengan `BlocProvider<GameBloc>`.
+   - `injection_container.dart` mendaftarkan dependensi dari layer paling bawah ke atas: `ApiClient` ➔ `GameRemoteDataSource` ➔ `GameRepository` ➔ `GetGamesUseCase` ➔ `GameController`.
+   - `app.dart` membungkus aplikasi dengan `MultiProvider` agar Controller dan service dapat diakses di seluruh widget tree.
 
-2. **Trigger Event di UI** (`lib/features/games/presentation/pages/game_list_page.dart`):
-   - Saat `GameListPage` diinisialisasi (`initState`), dikirimkan `FetchGamesEvent(forceRefresh: false)`.
-   - Pengguna dapat menarik layar (Pull-to-refresh) atau menekan tombol refresh di AppBar untuk mengirim `FetchGamesEvent(forceRefresh: true)`.
+2. **Trigger Data di Halaman UI** (`lib/features/games/presentation/pages/game_list_page.dart`):
+   - Saat `GameListPage` pertama kali dibuka (`initState`), memanggil `context.read<GameController>().fetchGames()`.
 
-3. **Manajemen State (BLoC)** (`lib/features/games/presentation/bloc/`):
-   - `GameBloc` menerima `FetchGamesEvent`. Jika belum memiliki data, memancarkan `GameLoadingState`.
-   - Memanggil `GetGamesUseCase` dengan parameter `forceRefresh`.
+3. **Manajemen State** (`lib/features/games/presentation/controllers/game_controller.dart`):
+   - `fetchGames()` mengeset `_status = GameStateStatus.loading` lalu memanggil `notifyListeners()`.
+   - Halaman UI merespons perubahan ini dengan menampilkan widget loading indicator.
 
 4. **Eksekusi Business Rule** (`lib/features/games/domain/usecases/get_games_usecase.dart`):
-   - Meneruskan request ke kontrak `GameRepository`.
+   - Controller mengeksekusi `GetGamesUseCase`.
+   - UseCase hanya mengetahui kontrak interface `GameRepository` di Domain layer, sehingga logika bisnis tidak terikat pada framework atau library network apapun.
 
-5. **Strategi Caching Hemat Bandwidth** (`lib/features/games/data/`):
-   - `GameRepositoryImpl` memeriksa `GameLocalDataSource`. Jika data sudah ada di memori dan tidak meminta force refresh, data cache langsung dikembalikan tanpa request HTTP ke server.
-   - Jika belum ada data atau diminta refresh, data baru diambil dari `GameRemoteDataSource` dan otomatis disimpan kembali ke `GameLocalDataSource`.
-   - Jika jaringan mati saat request, repositori otomatis menggunakan cache yang ada sebagai fallback offline.
+5. **Pengambilan Data & Pemetaan Error** (`lib/features/games/data/`):
+   - `GameRepositoryImpl` memanggil `GameRemoteDataSource.fetchGames()`.
+   - Raw JSON diubah menjadi `GameModel` (turunan dari `GameEntity`).
+   - Jika koneksi terputus atau server error, DataSource melempar exception (`NetworkException` / `ServerException`).
+   - `GameRepositoryImpl` menangkap exception tersebut dan mengemasnya dalam `Left(Failure)`, atau `Right(games)` jika sukses.
 
-6. **Optimasi Performa 120 FPS**:
-   - `ListView.builder` menggunakan properti `itemExtent: 116` sehingga Flutter tidak perlu menghitung ulang dimensi item saat scrolling cepat.
-   - `BouncingScrollPhysics` memberikan sentuhan responsif pada display high-refresh-rate (90Hz / 120Hz).
-   - Setiap item card dibungkus `RepaintBoundary` untuk mengisolasi area render dan mencegah repaint pada keseluruhan layar.
-   - `Image.network` memanfaatkan decoding ukuran presisi (`cacheWidth` & `cacheHeight`) untuk menghemat konsumsi GPU dan RAM.
+6. **Render Ulang Tampilan (UI Re-render)**:
+   - Controller memeriksa hasil menggunakan method `.fold(...)`:
+     - **Jika Gagal**: `status = error`, `errorMessage` diisi pesan kegagalan, dan UI menampilkan pesan error beserta tombol coba lagi.
+     - **Jika Berhasil**: `status = loaded`, list data disimpan, dan UI merender daftar game melalui `ListView` dan `GameCardWidget`.
+
+---
+
+## Prasyarat Lingkungan (Prerequisites)
+
+Sebelum menjalankan atau melakukan debugging pada platform Android, pastikan lingkungan pengembangan memenuhi syarat berikut:
+
+1. **Flutter SDK**: Versi `3.10+` (Direkomendasikan `3.24+` / `3.27+` / `3.47+`).
+2. **Java Development Kit (JDK)**: **Java 17 (LTS)**.
+   > *Catatan*: Hindari penggunaan Java 25+ bawaan Android Studio terbaru karena sering terjadi ketidakcocokan versi Gradle/Crash `sdkmanager`. Gunakan OpenJDK 17:
+   ```bash
+   flutter config --jdk-dir="C:\Program Files\Microsoft\jdk-17.0.20.101-hotspot"
+   ```
+3. **Android Studio & SDK**:
+   - **Android SDK Platform** (API 34, 35, atau 36).
+   - **Android SDK Command-line Tools (latest)**: Wajib dicentang via *Android Studio > Settings > Languages & Frameworks > Android SDK > SDK Tools*.
+   - **Android NDK**: Versi `27.0.12077973` (atau sesuai konfigurasi di `android/app/build.gradle.kts`).
+4. **Android Licenses**:
+   ```bash
+   flutter doctor --android-licenses
+   ```
+
+---
+
+## Konfigurasi Perangkat (Device Setup)
+
+### A. Menggunakan Perangkat Fisik (Real Device / HP Android)
+1. Aktifkan **Developer Options (Opsi Pengembang)**:
+   - Masuk ke *Settings > About Phone*, lalu ketuk **Build Number** sebanyak 7 kali.
+2. Aktifkan **USB Debugging**:
+   - Masuk ke *Settings > Additional Settings / System > Developer Options > USB Debugging*.
+3. **Khusus HP Xiaomi / POCO / Redmi (Penting)**:
+   - Aktifkan **`Install via USB`** di menu *Developer Options* (memerlukan akun Mi & kartu SIM).
+   - *(Opsional)* Aktifkan **`USB debugging (Security settings)`**.
+   - Saat proses instalasi pertama kali, konfirmasi pop-up **"Allow / Install"** yang muncul di layar HP.
+
+### B. Menggunakan Emulator Android
+- Buat Virtual Device di **Android Studio Device Manager** dengan arsitektur **`x86_64`** (rekomendasi API 34 atau API 35).
+- *Catatan*: Hindari emulator dengan arsitektur `x86` (32-bit legacy) karena berstatus `unsupported` pada rilis Flutter modern.
 
 ---
 
 ## Cara Menjalankan Proyek
 
-1. Pastikan Flutter SDK telah terinstal di sistem Anda dan terdaftar di variabel sistem `PATH`.
-2. Unduh dependensi:
+1. Pastikan semua dependensi dan perangkat telah terhubung:
+   ```bash
+   flutter doctor
+   flutter devices
+   ```
+2. Unduh dependensi Flutter:
    ```bash
    flutter pub get
    ```
-3. Jalankan analisis linter:
+3. Jalankan analisis kode (linter):
    ```bash
    flutter analyze
    ```
-4. Jalankan aplikasi:
+4. Jalankan aplikasi ke perangkat yang dipilih:
    ```bash
+   # Otomatis memilih perangkat yang aktif
    flutter run
+
+   # Atau spesifik ke ID perangkat (misal HP fisik)
+   flutter run -d <DEVICE_ID>
    ```
+
