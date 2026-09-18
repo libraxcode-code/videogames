@@ -2,7 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 /// High performance Glassmorphism Container.
-/// Supports enabling/disabling BackdropFilter blur for 120 FPS high refresh scrolling.
+/// Supports optional backgroundImage, blur, opacity, border, and gradient.
 class GlassContainer extends StatelessWidget {
   final Widget child;
   final double blur;
@@ -16,6 +16,8 @@ class GlassContainer extends StatelessWidget {
   final List<BoxShadow>? shadows;
   final VoidCallback? onTap;
   final bool enableBlur;
+  final ImageProvider? backgroundImage;
+  final double imageOpacity;
 
   const GlassContainer({
     super.key,
@@ -30,7 +32,9 @@ class GlassContainer extends StatelessWidget {
     this.color,
     this.shadows,
     this.onTap,
-    this.enableBlur = false, // false by default for 120 FPS buttery smooth scrolling
+    this.enableBlur = false,
+    this.backgroundImage,
+    this.imageOpacity = 0.25,
   });
 
   @override
@@ -60,15 +64,44 @@ class GlassContainer extends StatelessWidget {
                 ],
         );
 
-    Widget innerBox = Container(
-      padding: padding,
-      decoration: BoxDecoration(
-        color: color,
-        gradient: color == null ? defaultGradient : null,
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: defaultBorder,
-      ),
-      child: child,
+    Widget innerBox = Stack(
+      children: [
+        // Background Image / Animated GIF texture if provided
+        if (backgroundImage != null)
+          Positioned.fill(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(borderRadius),
+              child: Opacity(
+                opacity: imageOpacity,
+                child: Image(
+                  image: backgroundImage!,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+          ),
+
+        // Translucent Glass Gradient Tint
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              color: color,
+              gradient: color == null ? defaultGradient : null,
+              borderRadius: BorderRadius.circular(borderRadius),
+            ),
+          ),
+        ),
+
+        // Foreground Content with Padding
+        Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: defaultBorder,
+          ),
+          child: child,
+        ),
+      ],
     );
 
     Widget content = Container(
