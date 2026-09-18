@@ -66,7 +66,11 @@ class GameRepositoryImpl implements GameRepository {
   Future<Either<Failure, GameEntity>> getGameById(String id) async {
     try {
       final cached = await localDataSource.getCachedGameDetail(id);
-      if (cached != null && cached.description.isNotEmpty && cached.description.length > 120) {
+      // If cached has full description and has already been queried for detail (e.g. platforms or developers populated)
+      if (cached != null &&
+          cached.description.isNotEmpty &&
+          cached.description.length > 120 &&
+          (cached.developers.isNotEmpty || cached.publishers.isNotEmpty || cached.trailerUrl != null)) {
         return Right(cached);
       }
 

@@ -48,14 +48,14 @@ class GameDetailContent extends StatelessWidget {
         ),
         const SizedBox(height: 22),
 
-        // 2. On-Demand Official Trailer Player (if available)
-        if (game.trailerUrl != null && game.trailerUrl!.isNotEmpty) ...[
-          GameTrailerPlayer(
-            trailerUrl: game.trailerUrl!,
-            trailerPreview: game.trailerPreview,
-          ),
-          const SizedBox(height: 22),
-        ],
+        // 2. Official Trailer Player (Opsi 1) with seamless YouTube Fallback (Opsi 3)
+        GameTrailerPlayer(
+          gameTitle: game.title,
+          trailerUrl: game.trailerUrl,
+          trailerPreview: game.trailerPreview,
+          fallbackImageUrl: game.imageUrl,
+        ),
+        const SizedBox(height: 22),
 
         // 2. Description
         const Text(
