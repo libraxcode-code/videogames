@@ -36,6 +36,8 @@ class GameCardWidget extends StatelessWidget {
           opacity: isDark ? 0.08 : 0.70,
           onTap: onTap,
           padding: const EdgeInsets.all(12.0),
+          backgroundImage: const AssetImage('assets/images/cyberpunk_bg.jpg'),
+          imageOpacity: isDark ? 0.16 : 0.10,
           border: Border.all(
             color: isDark
                 ? Colors.white.withOpacity(0.12)
