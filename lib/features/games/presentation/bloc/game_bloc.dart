@@ -26,8 +26,10 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   ) async {
     final query = event.searchQuery ?? '';
 
-    // Show loading indicator
-    emit(GameLoadingState(isSearching: query.isNotEmpty));
+    // Only show full loading if there is no previous loaded games or on search
+    if (state is! GameLoadedState || event.forceRefresh || query.isNotEmpty) {
+      emit(GameLoadingState(isSearching: query.isNotEmpty));
+    }
 
     final result = await getGamesUseCase(
       GetGamesParams(
